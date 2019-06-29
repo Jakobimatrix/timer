@@ -11,5 +11,6 @@ A simple timer class easy to use. useing std::chrono
  - [ ] add an example usage
  
 ## Build the project (Linux)
- * Either just include the headder file
- * Or use CMake the library is called **timer_lib**
+* If you use CMake to build your project place this repro inside 'path' and use **add_subdirectory(path/
+timer)** and **target_link_libraries(your_lib timer_lib)**
+* Or just include the header
