@@ -57,6 +57,17 @@ public:
     return ret;
   }
 
+  void operator+=(const PreciseTime &pt) {
+    nano_seconds += pt.nano_seconds;
+    micro_seconds += pt.micro_seconds;
+    milli_seconds += pt.milli_seconds;
+    seconds += pt.seconds;
+    minutes += pt.minutes;
+    hours += pt.hours;
+
+    sanitize();
+  }
+
   PreciseTime operator-(const PreciseTime &pt) const {
     PreciseTime ret(pt);
     ret.nano_seconds -= nano_seconds;
@@ -68,6 +79,17 @@ public:
 
     ret.sanitize();
     return ret;
+  }
+
+  void operator-=(const PreciseTime &pt) {
+    nano_seconds -= pt.nano_seconds;
+    micro_seconds -= pt.micro_seconds;
+    milli_seconds -= pt.milli_seconds;
+    seconds -= pt.seconds;
+    minutes -= pt.minutes;
+    hours -= pt.hours;
+
+    sanitize();
   }
 
   PreciseTime operator*(const double multi) const {
@@ -99,19 +121,65 @@ public:
     const double nanoseconds =
         this->nano_seconds.count() * multi + nanoseconds_rest;
 
+    const int sign = nanoseconds < 0 ? -1 : 1;
+
     PreciseTime ret;
     ret.nano_seconds =
         std::chrono::nanoseconds(static_cast<int>(std::round(nanoseconds)));
-    ret.micro_seconds =
-        std::chrono::microseconds(static_cast<int>(remaining_microseconds));
-    ret.milli_seconds =
-        std::chrono::milliseconds(static_cast<int>(remaining_milliseconds));
-    ret.seconds = std::chrono::seconds(static_cast<int>(remaining_seconds));
-    ret.minutes = std::chrono::minutes(static_cast<int>(remaining_minutes));
-    ret.hours = std::chrono::hours(static_cast<int>(remaining_hours));
+    ret.micro_seconds = std::chrono::microseconds(
+        static_cast<int>(sign * remaining_microseconds));
+    ret.milli_seconds = std::chrono::milliseconds(
+        static_cast<int>(sign * remaining_milliseconds));
+    ret.seconds =
+        std::chrono::seconds(static_cast<int>(sign * remaining_seconds));
+    ret.minutes =
+        std::chrono::minutes(static_cast<int>(sign * remaining_minutes));
+    ret.hours = std::chrono::hours(static_cast<int>(sign * remaining_hours));
 
     ret.sanitize();
     return ret;
+  }
+
+  void operator*=(const double multi) {
+    const double hours = this->hours.count() * multi;
+    double remaining_hours;
+    const double minutes_rest = std::modf(hours, &remaining_hours) * 60.;
+
+    const double minutes = this->minutes.count() * multi + minutes_rest;
+    double remaining_minutes;
+    const double seconds_rest = std::modf(minutes, &remaining_minutes) * 60.;
+
+    const double seconds = this->seconds.count() * multi + seconds_rest;
+    double remaining_seconds;
+    const double milliseconds_rest =
+        std::modf(seconds, &remaining_seconds) * 1000.;
+
+    const double milliseconds =
+        this->milli_seconds.count() * multi + milliseconds_rest;
+    double remaining_milliseconds;
+    const double microseconds_rest =
+        std::modf(milliseconds, &remaining_milliseconds) * 1000.;
+
+    const double microseconds =
+        this->micro_seconds.count() * multi + microseconds_rest;
+    double remaining_microseconds;
+    const double nanoseconds_rest =
+        std::modf(microseconds, &remaining_microseconds) * 1000.;
+
+    const double nanoseconds =
+        this->nano_seconds.count() * multi + nanoseconds_rest;
+
+    nano_seconds =
+        std::chrono::nanoseconds(static_cast<int>(std::round(nanoseconds)));
+    micro_seconds =
+        std::chrono::microseconds(static_cast<int>(remaining_microseconds));
+    milli_seconds =
+        std::chrono::milliseconds(static_cast<int>(remaining_milliseconds));
+    this->seconds = std::chrono::seconds(static_cast<int>(remaining_seconds));
+    this->minutes = std::chrono::minutes(static_cast<int>(remaining_minutes));
+    this->hours = std::chrono::hours(static_cast<int>(remaining_hours));
+
+    sanitize();
   }
 
   PreciseTime operator/(const double div) const {
@@ -156,6 +224,48 @@ public:
 
     ret.sanitize();
     return ret;
+  }
+
+  void operator/=(const double div) {
+    const double hours = this->hours.count() / div;
+    double remaining_hours;
+    const double minutes_rest = std::modf(hours, &remaining_hours) * 60.;
+
+    const double minutes = this->minutes.count() / div + minutes_rest;
+    double remaining_minutes;
+    const double seconds_rest = std::modf(minutes, &remaining_minutes) * 60.;
+
+    const double seconds = this->seconds.count() / div + seconds_rest;
+    double remaining_seconds;
+    const double milliseconds_rest =
+        std::modf(seconds, &remaining_seconds) * 1000.;
+
+    const double milliseconds =
+        this->milli_seconds.count() / div + milliseconds_rest;
+    double remaining_milliseconds;
+    const double microseconds_rest =
+        std::modf(milliseconds, &remaining_milliseconds) * 1000.;
+
+    const double microseconds =
+        this->micro_seconds.count() / div + microseconds_rest;
+    double remaining_microseconds;
+    const double nanoseconds_rest =
+        std::modf(microseconds, &remaining_microseconds) * 1000.;
+
+    const double nanoseconds =
+        this->nano_seconds.count() / div + nanoseconds_rest;
+
+    nano_seconds =
+        std::chrono::nanoseconds(static_cast<int>(std::round(nanoseconds)));
+    micro_seconds =
+        std::chrono::microseconds(static_cast<int>(remaining_microseconds));
+    milli_seconds =
+        std::chrono::milliseconds(static_cast<int>(remaining_milliseconds));
+    this->seconds = std::chrono::seconds(static_cast<int>(remaining_seconds));
+    this->minutes = std::chrono::minutes(static_cast<int>(remaining_minutes));
+    this->hours = std::chrono::hours(static_cast<int>(remaining_hours));
+
+    sanitize();
   }
 
   bool operator==(const PreciseTime &pt) const {
@@ -218,6 +328,57 @@ public:
       return false;
     }
     return true;
+  }
+
+  template <class c>
+  typename std::enable_if<std::is_same<c, std::chrono::nanoseconds>::value,
+                          double>::type
+  toDouble() const {
+    return convert<c>().count();
+  }
+
+  template <class c>
+  typename std::enable_if<std::is_same<c, std::chrono::microseconds>::value,
+                          double>::type
+  toDouble() const {
+    return convert<c>().count() + micro_seconds.count() / 1000.;
+  }
+
+  template <class c>
+  typename std::enable_if<std::is_same<c, std::chrono::milliseconds>::value,
+                          double>::type
+  toDouble() const {
+    return convert<c>().count() + micro_seconds.count() / 1000. +
+           nano_seconds.count() / 1000000.;
+  }
+
+  template <class c>
+  typename std::enable_if<std::is_same<c, std::chrono::seconds>::value,
+                          double>::type
+  toDouble() const {
+    return convert<c>().count() + milli_seconds.count() / 1000. +
+           micro_seconds.count() / 1000000. +
+           nano_seconds.count() / 1000000000.;
+  }
+
+  template <class c>
+  typename std::enable_if<std::is_same<c, std::chrono::minutes>::value,
+                          double>::type
+  toDouble() const {
+    return convert<c>().count() + seconds.count() / 60. +
+           milli_seconds.count() / 1000000. +
+           micro_seconds.count() / 1000000000. +
+           nano_seconds.count() / 1000000000000.;
+  }
+
+  template <class c>
+  typename std::enable_if<std::is_same<c, std::chrono::hours>::value,
+                          double>::type
+  toDouble() const {
+    return convert<c>().count() + minutes.count() / 60. +
+           seconds.count() / 3600. + milli_seconds.count() / 1000000000. +
+           micro_seconds.count() / 1000000000000. +
+           nano_seconds.count() / 1000000000000000.;
   }
 
   // todo overflow!!! if e.g microsseconds are at max
@@ -301,10 +462,24 @@ public:
   }
 
   friend std::ostream &operator<<(std::ostream &os, const PreciseTime &pt) {
-    os << "h: [" << pt.hours.count() << "] \tm: [" << pt.minutes.count()
-       << "] \ts: [" << pt.seconds.count() << "] \tms: ["
-       << pt.milli_seconds.count() << "] \tus: [" << pt.micro_seconds.count()
-       << "] \tns: [" << pt.nano_seconds.count() << "]";
+    auto blanks = [](long num) {
+      const long i = std::abs(num);
+      if (i < 10) {
+        return "  ";
+      } else if (i < 100) {
+        return " ";
+      }
+      return "";
+    };
+
+    // clang-format off
+    os << "h: ["  << pt.hours.count()   << "] " << blanks(pt.hours.count())
+       << "m: ["  << pt.minutes.count() << "] " << blanks(pt.minutes.count())
+       << "s: ["  << pt.seconds.count() << "] " << blanks(pt.seconds.count())
+       << "ms: [" << pt.milli_seconds.count() << "] " << blanks(pt.milli_seconds.count())
+       << "us: [" << pt.micro_seconds.count() << "] " << blanks(pt.micro_seconds.count())
+       << "ns: [" << pt.nano_seconds.count()  << "]";
+    // clang-format on
     return os;
   }
 
@@ -335,27 +510,27 @@ public:
 
 private:
   void sanitize() {
-    int carry = static_cast<int>(nano_seconds.count() / 1000.);
+    long carry = static_cast<long>(nano_seconds.count() / 1000.);
     micro_seconds += std::chrono::microseconds(carry);
 
     nano_seconds -= std::chrono::nanoseconds(1000 * carry);
 
-    carry = static_cast<int>(micro_seconds.count() / 1000.);
+    carry = static_cast<long>(micro_seconds.count() / 1000.);
     milli_seconds += std::chrono::milliseconds(carry);
 
     micro_seconds -= std::chrono::microseconds(1000 * carry);
 
-    carry = static_cast<int>(milli_seconds.count() / 1000.);
+    carry = static_cast<long>(milli_seconds.count() / 1000.);
     seconds += std::chrono::seconds(carry);
 
     milli_seconds -= std::chrono::milliseconds(1000 * carry);
 
-    carry = static_cast<int>(seconds.count() / 60.);
+    carry = static_cast<long>(seconds.count() / 60.);
     minutes += std::chrono::minutes(carry);
 
     seconds -= std::chrono::seconds(60 * carry);
 
-    carry = static_cast<int>(minutes.count() / 60.);
+    carry = static_cast<long>(minutes.count() / 60.);
     hours += std::chrono::hours(carry);
 
     minutes -= std::chrono::minutes(60 * carry);
@@ -412,6 +587,7 @@ public:
   };
 
   const Result &getResult() {
+
     if (!result_needs_update) {
       return result;
     }
@@ -427,31 +603,29 @@ public:
         if (measurement < result.min_measurement) {
           result.min_measurement = measurement;
         }
-        sum = sum + measurement;
+        sum += measurement;
         result.number_measurements++;
       }
     }
 
     result.average = sum / result.number_measurements;
 
-    const std::chrono::nanoseconds average =
-        result.average.convert<std::chrono::nanoseconds>();
+    const double average_ms =
+        result.average.toDouble<std::chrono::nanoseconds>();
     // variance
-    sum = PreciseTime::zero();
+    double var_sum = 0.;
     for (const auto &timer : measurements) {
       for (const auto &measurement : timer.second) {
-        const std::chrono::nanoseconds diff =
-            measurement.get<std::chrono::nanoseconds>() - average;
-        sum = sum + diff * diff.count();
-        std::cout << sum.convert<std::chrono::nanoseconds>().count() << " -- "
-                  << diff.count() << std::endl;
+        const double diff =
+            measurement.toDouble<std::chrono::nanoseconds>() - average_ms;
+
+        // avoid possible overflow when calculateing diff*diff: use PreciseTime
+        var_sum += diff * diff;
       }
     }
 
-    const PreciseTime variance = sum / result.number_measurements;
-    const std::chrono::nanoseconds variance_ns =
-        variance.convert<std::chrono::nanoseconds>();
-    const double std_derivation = std::sqrt(variance_ns.count());
+    const double std_derivation =
+        std::sqrt(var_sum / result.number_measurements);
     result.standard_derivation =
         std::chrono::nanoseconds(static_cast<int>(std_derivation));
 
