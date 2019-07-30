@@ -1,7 +1,120 @@
+/*
+ * \file: timer.hpp
+ * \brief: Implements the PreciseTime class useing std::chrono. Implements an
+ * easy to use timer class.
+ *
+ * PreciseTime: Is able to convert between any std::chrono time and PreciseTime.
+ * Features:
+ *  - adding/substracting with
+ *    PreciseTime class considering the unit:
+ *    1[s] + 1[s] -> ok; 1[s] + 1[s^2] -> error
+ *  - division/multiplication with
+ *    a) int/double/etc
+ *    b) PreciseTime class while keeping track of the unit:
+ *       1[s] * 1[s] = 1[s^2]
+ *    - calculateing the square root of a PreciseTime keeping track of
+ *      he unit: sqrt(4[s^2]) = 2[s].
+ *    - Comparisons: {==, !=, <=, >=, <, >}
+ *    - Nice print output: std::cout << my_precise_time << std::endl;
+ *    - Max Time:
+ *      h: [9223372036854775807] m: [59]  s: [59]  ms: [999] us: [999] ns: [999]
+ *    - Min Time:
+ *      h: [-9223372036854775808] m: [-59]  s: [-59]  ms: [-999] us: [-999] ns:
+ *      [-999]
+ *
+ * Timer: Useing the PreciseTime class to track time.
+ * Features:
+ *  - No need to register new timers.
+ *  - As many timers as you like.
+ *  - On demand output of max, min, mean, standard deviation for all timers.
+ *
+Example Usage:
+
+#include <random>
+#include<timer.hpp>
+
+int main() {
+
+  tool::PreciseTime max_pt = tool::PreciseTime::max();
+  tool::PreciseTime min_pt = tool::PreciseTime::min();
+  std::cout << max_pt << std::endl << min_pt << std::endl;
+
+  // construction
+  tool::PreciseTime my_time1(std::chrono::nanoseconds(987654321));
+  tool::PreciseTime my_time2(std::chrono::milliseconds(42));
+  tool::PreciseTime my_time3 = std::chrono::nanoseconds(22) +
+                               std::chrono::microseconds(450) +
+                               std::chrono::milliseconds(12);
+  std::cout << my_time1 << std::endl;
+
+  // calculations
+  my_time1 = my_time1 + my_time1;
+  my_time1 -= my_time2;
+
+  my_time2 *= 1.5;
+  my_time2 = my_time2 / 3.3;
+
+  tool::PreciseTime timeSquared = my_time1 * my_time2;
+  // This throws a runtime error if build in debug mode.
+  tool::PreciseTime corruptedTime = timeSquared + my_time1;
+
+  // Takeing the square root only works with usints s^n where n is even.
+  tool::PreciseTime normalTime = tool::PreciseTime::sqrt(timeSquared);
+
+  my_time1 = std::chrono::nanoseconds(22) + std::chrono::microseconds(450) +
+             std::chrono::milliseconds(12);
+  std::cout << my_time1 << std::endl;
+
+  // coversations
+  typedef std::chrono::microseconds exampleType;
+
+  // This gets the time in exampleType ! this might result in resolution loss
+  // if the time is 22ns and 450us and 12ms, This returns exact 12450us
+  exampleType us = my_time3.convert<exampleType>();
+  std::cout << us.count() << std::endl;
+
+  // if the time is 22ns and 450us and 12ms, This returns exact 450us
+  exampleType part_us = my_time3.get<exampleType>();
+  std::cout << part_us.count() << std::endl;
+
+  // if the time is 22ns and 450us and 12ms, This returns exact* 12450.022
+  //* double precision exact
+  double floatingPoint = my_time3.toDouble<exampleType>();
+  std::cout << std::fixed << floatingPoint << std::endl << std::endl;
+
+  // Usage of timer class
+  tool::Timer timer;
+
+  timer.start("for-timer");
+
+  std::random_device rd;
+  std::default_random_engine generator(rd());
+  const double mean = 1.;
+  const double deviation = 0.15;
+  timer.start("for-timer");
+  for (int i = 0; i < 10000; i++) {
+    std::normal_distribution<double> distribution(mean, deviation);
+    const double sleep = distribution(generator);
+    timer.start("sleepTimer");
+    usleep(sleep * 100);
+    timer.stop("sleepTimer");
+  }
+  timer.stop("for-timer");
+
+  return 0;
+}
+
+ * \date: 30.07.2019
+ * \author: Jakob Wandel
+ * \version: 1.0
+ */
+
 #ifndef TIMER_H
 #define TIMER_H
 
+#include <cassert>
 #include <chrono>
+#include <fstream>
 #include <functional>
 #include <iostream>
 #include <map>
@@ -11,6 +124,11 @@
 
 namespace tool {
 
+/*!
+ * \brief x2y(t x)
+ * \param x time in x
+ * \return time in y
+ */
 template <class t> auto mu2ns(t micro) { return static_cast<t>(micro * 1000.); }
 
 template <class t> auto ms2ns(t milli) {
@@ -67,6 +185,9 @@ template <class t> auto s2hf(t s) {
 
 class PreciseTime {
 public:
+  /// <Construction Area>
+  ///
+  ///
   PreciseTime() {}
 
   PreciseTime(const std::chrono::nanoseconds &nano_seconds_) {
@@ -97,6 +218,8 @@ public:
   PreciseTime(const std::chrono::hours &hours_) { hours = hours_; }
 
   PreciseTime operator+(const PreciseTime &pt) const {
+    assert(pt.exponent == exponent &&
+           "You can not add different units like s + s^2");
     PreciseTime ret(pt);
     ret.nano_seconds += nano_seconds;
     ret.seconds += seconds;
@@ -105,8 +228,28 @@ public:
     ret.sanitize();
     return ret;
   }
+  ///
+  ///
+  /// </Construction Area>
 
+  /*!
+   * \brief setExponent allowes to alter the exponent of the PreciseTime.
+   * \param exp The exponent.
+   */
+  void setExponent(int exp) { exponent = exp; }
+
+  /*!
+   * \brief getExponent returns the exponent of the PreciseTime.
+   * \return The exponent.
+   */
+  int getExponent() const { return exponent; }
+
+  /// <Arithmetics>
+  ///
+  ///
   void operator+=(const PreciseTime &pt) {
+    assert(pt.exponent == exponent &&
+           "You can not add different units like s + s^2");
     nano_seconds += pt.nano_seconds;
     seconds += pt.seconds;
     hours += pt.hours;
@@ -115,6 +258,8 @@ public:
   }
 
   PreciseTime operator-(const PreciseTime &pt) const {
+    assert(pt.exponent == exponent &&
+           "You can not substract different units like s + s^2");
     PreciseTime ret(pt);
     ret.nano_seconds -= nano_seconds;
     ret.seconds -= seconds;
@@ -125,6 +270,8 @@ public:
   }
 
   void operator-=(const PreciseTime &pt) {
+    assert(pt.exponent == exponent &&
+           "You can not substartc different units like s + s^2");
     nano_seconds -= pt.nano_seconds;
     seconds -= pt.seconds;
     hours -= pt.hours;
@@ -154,6 +301,7 @@ public:
         std::chrono::hours(static_cast<long>(std::round(remaining_hours)));
 
     ret.sanitize();
+    ret.exponent = exponent;
     return ret;
   }
 
@@ -180,13 +328,60 @@ public:
     sanitize();
   }
 
+  PreciseTime operator*(const PreciseTime &pt) const {
+    double resulting_ns = pt.toDouble<std::chrono::nanoseconds>() *
+                          toDouble<std::chrono::nanoseconds>();
+    PreciseTime ret(
+        std::chrono::nanoseconds(static_cast<int>(std::round(resulting_ns))));
+    ret.exponent = pt.exponent + exponent;
+    return ret;
+  }
+
   PreciseTime operator/(const double div) const { return *this * (1. / div); }
 
   void operator/=(const double div) { *this *= (1. / div); }
 
+  PreciseTime operator/(const PreciseTime &pt) const {
+    double resulting_ns = pt.toDouble<std::chrono::nanoseconds>() /
+                          toDouble<std::chrono::nanoseconds>();
+    PreciseTime ret(
+        std::chrono::nanoseconds(static_cast<int>(std::round(resulting_ns))));
+    ret.exponent = exponent - pt.exponent;
+    return ret;
+  }
+  ///
+  ///
+  /// </Arithmetics>
+
+  /// <Comparisons>
+  ///
+  ///
   bool operator==(const PreciseTime &pt) const {
-    return pt.nano_seconds == nano_seconds && pt.seconds == seconds &&
-           pt.hours == hours;
+    return pt.exponent == exponent && pt.nano_seconds == nano_seconds &&
+           pt.seconds == seconds && pt.hours == hours;
+  }
+
+  static const PreciseTime sqrt(const PreciseTime &pt) {
+    assert(pt.exponent % 2 == 0 &&
+           "squareroot of Precise time with odd exponent not supported.");
+    PreciseTime ret(std::chrono::nanoseconds(static_cast<long>(
+        std::round(std::sqrt(pt.toDouble<std::chrono::nanoseconds>())))));
+
+    ret.exponent = pt.exponent;
+    ret.exponent /= 2;
+    return ret;
+  }
+
+  void sqrt() {
+    assert(exponent % 2 == 0 &&
+           "squareroot of Precise time with odd exponent not supported.");
+
+    PreciseTime ret(std::chrono::nanoseconds(static_cast<long>(
+        std::round(std::sqrt(toDouble<std::chrono::nanoseconds>())))));
+
+    ret.exponent = ret.exponent;
+    ret.exponent /= 2;
+    *this = ret;
   }
 
   bool operator!=(const PreciseTime &pt) const { return !(*this == pt); }
@@ -231,16 +426,17 @@ public:
     }
     return true;
   }
+  ///
+  ///
+  /// </Comparisons>
 
+  /*!
+   * \brief toDouble() Casts the PrecisionTime to a double value in the unit
+   * given with the template
+   * \return the time as a double in the given unit.
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::nanoseconds>::value,
-                          double>::type
-  toDouble() const {
-    return convert<c>().count();
-  }
-
-  template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::microseconds>::value,
                           double>::type
   toDouble() const {
     return h2ns(static_cast<double>(hours.count())) +
@@ -248,6 +444,25 @@ public:
            static_cast<double>(nano_seconds.count());
   }
 
+  /*!
+   * \brief toDouble() Casts the PrecisionTime to a double value in the unit
+   * given with the template
+   * \return the time as a double in the given unit.
+   */
+  template <class c>
+  typename std::enable_if<std::is_same<c, std::chrono::microseconds>::value,
+                          double>::type
+  toDouble() const {
+    return h2us(static_cast<double>(hours.count())) +
+           s2us(static_cast<double>(seconds.count())) +
+           ns2us(static_cast<double>(nano_seconds.count()));
+  }
+
+  /*!
+   * \brief toDouble() Casts the PrecisionTime to a double value in the unit
+   * given with the template
+   * \return the time as a double in the given unit.
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::milliseconds>::value,
                           double>::type
@@ -257,6 +472,11 @@ public:
            ns2ms(static_cast<double>(nano_seconds.count()));
   }
 
+  /*!
+   * \brief toDouble() Casts the PrecisionTime to a double value in the unit
+   * given with the template
+   * \return the time as a double in the given unit.
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::seconds>::value,
                           double>::type
@@ -266,6 +486,11 @@ public:
            ns2s(static_cast<double>(nano_seconds.count()));
   }
 
+  /*!
+   * \brief toDouble() Casts the PrecisionTime to a double value in the unit
+   * given with the template
+   * \return the time as a double in the given unit.
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::minutes>::value,
                           double>::type
@@ -275,6 +500,11 @@ public:
            ns2m(static_cast<double>(nano_seconds.count()));
   }
 
+  /*!
+   * \brief toDouble() Casts the PrecisionTime to a double value in the unit
+   * given with the template
+   * \return the time as a double in the given unit.
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::hours>::value,
                           double>::type
@@ -284,7 +514,13 @@ public:
            ns2h(static_cast<double>(nano_seconds.count()));
   }
 
-  // todo overflow!!! if e.g microsseconds are at max
+  /*!
+   * \brief convert() Converts the PrecisionTime to the type given in the
+   * template.
+   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > convert<nanoseconds>
+   * will return (((3600*2h + 60*3m + 44s)*1000 + 40ms)*1000 + 66us)*1000 + 12ns
+   * = 7364040066012ns
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::nanoseconds>::value,
                           c>::type
@@ -293,6 +529,13 @@ public:
         h2ns(hours.count()) + s2ns(seconds.count()) + nano_seconds.count());
   }
 
+  /*!
+   * \brief convert() Converts the PrecisionTime to the type given in the
+   * template.
+   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > convert<microseconds>
+   * will return ((3600*2h + 60*3m + 44s)*1000 + 40ms)*1000 + 66us =
+   * 7364040066us
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::microseconds>::value,
                           c>::type
@@ -302,6 +545,12 @@ public:
                                      ns2us(nano_seconds.count()));
   }
 
+  /*!
+   * \brief convert() Converts the PrecisionTime to the type given in the
+   * template.
+   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > convert<milliseconds>
+   * will return (3600*2h + 60*3m + 44s)*1000 + 40ms= 7364040ms
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::milliseconds>::value,
                           c>::type
@@ -311,16 +560,24 @@ public:
                                      ns2ms(nano_seconds.count()));
   }
 
-  // preciseTime = 2h,3m,44s,40ms,66us,12ns > get nanoseconds will return
-  // 2*3600s+3*60s+44s
+  /*!
+   * \brief convert() Converts the PrecisionTime to the type given in the
+   * template.
+   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > convert<seconds> will
+   * return 3600*2h + 60*3m + 44s= 7364s
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::seconds>::value, c>::type
   convert() const {
     return std::chrono::seconds(h2s(hours.count())) + seconds;
   }
 
-  // preciseTime = 2h,3m,44s,40ms,66us,12ns > get nanoseconds will return
-  // 2*60m+3m
+  /*!
+   * \brief convert() Converts the PrecisionTime to the type given in the
+   * template.
+   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > convert<minutes> will
+   * return 60*2h + 3m = 123m
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::minutes>::value, c>::type
   convert() const {
@@ -328,14 +585,23 @@ public:
     ;
   }
 
-  // preciseTime = 2h,3m,44s,40ms,66us,12ns > get nanoseconds will return 2h
+  /*!
+   * \brief convert() Converts the PrecisionTime to the type given in the
+   * template.
+   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > convert<hours> will
+   * return 2h
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::hours>::value, c>::type
   convert() const {
     return hours;
   }
 
-  // preciseTime = 2h,3m,44s,40ms,66us,12ns > get nanoseconds will return 12ns
+  /*!
+   * \brief get() Returns the part of the time of which the type was given.
+   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > get<nanoseconds> will
+   * return 12ns
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::nanoseconds>::value,
                           c>::type
@@ -349,7 +615,11 @@ public:
     return nano_seconds;
   }
 
-  // preciseTime = 2h,3m,44s,40ms,66us,12ns > get microseconds will return 66su
+  /*!
+   * \brief get() Returns the part of the time of which the type was given.
+   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > get<microseconds> will
+   * return 66us
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::microseconds>::value,
                           c>::type
@@ -364,7 +634,11 @@ public:
     return std::chrono::microseconds(us);
   }
 
-  // preciseTime = 2h,3m,44s,40ms,66us,12ns > get milliseconds will return 40ms
+  /*!
+   * \brief get() Returns the part of the time of which the type was given.
+   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > get<milliseconds> will
+   * return 40ms
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::milliseconds>::value,
                           c>::type
@@ -379,7 +653,11 @@ public:
     return std::chrono::milliseconds(ms);
   }
 
-  // preciseTime = 2h,3m,44s,40ms,66us,12ns > get seconds will return 44s
+  /*!
+   * \brief get() Returns the part of the time of which the type was given.
+   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > get<seconds> will
+   * return 44s
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::seconds>::value, c>::type
   get() const {
@@ -392,7 +670,11 @@ public:
     return seconds;
   }
 
-  // preciseTime = 2h,3m,44s,40ms,66us,12ns > get munutes will return 3m
+  /*!
+   * \brief get() Returns the part of the time of which the type was given.
+   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > get<minutes> will
+   * return 3m
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::minutes>::value, c>::type
   get() const {
@@ -405,13 +687,22 @@ public:
     return std::chrono::minutes(m);
   }
 
-  // preciseTime = 2h,3m,44s,40ms,66us,12ns > get munutes will return 2h
+  /*!
+   * \brief get Returns the part of the time of which the type was given.
+   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > get<hours> will
+   * return 2h
+   */
   template <class c>
   typename std::enable_if<std::is_same<c, std::chrono::hours>::value, c>::type
   get() const {
     return hours;
   }
 
+  /*!
+   * \brief Implements a clean print for the current time:
+   * {h: [xxxx]   m: [xx]   s: [xxx]   ms: [xxx]   us: [xxx]  ns:
+   * [xxx]}^exponent
+   */
   friend std::ostream &operator<<(std::ostream &os, const PreciseTime &pt) {
     auto blanks = [](long num) {
       const long i = std::abs(num);
@@ -429,18 +720,22 @@ public:
     const long ms = pt.get<std::chrono::milliseconds>().count();
     const long us = pt.get<std::chrono::microseconds>().count();
     const long ns = pt.get<std::chrono::nanoseconds>().count();
+    const std::string exp = std::to_string(pt.exponent);
 
     // clang-format off
-    os << "h: ["  << hours   << "] " << blanks(hours)
+    os << "{h: ["  << hours   << "] " << blanks(hours)
        << "m: ["  << minutes << "] " << blanks(minutes)
        << "s: ["  << seconds << "] " << blanks(seconds)
        << "ms: [" << ms << "] " << blanks(ms)
        << "us: [" << us << "] " << blanks(us)
-       << "ns: [" << ns  << "]";
+       << "ns: [" << ns  << "]}^"<<exp;
     // clang-format on
     return os;
   }
 
+  /*!
+   * \brief max Returns the greatest time the PreciseTime class can hold
+   */
   static const PreciseTime max() {
     PreciseTime ps(std::chrono::hours::max());
     ps.seconds = MAX_VALIDE_S;
@@ -448,6 +743,9 @@ public:
     return ps;
   }
 
+  /*!
+   * \brief min Returns the smallest time the PreciseTime class can hold
+   */
   static const PreciseTime min() {
     PreciseTime ps(std::chrono::hours::min());
     ps.seconds = MIN_VALIDE_S;
@@ -455,12 +753,19 @@ public:
     return ps;
   }
 
+  /*!
+   * \brief zero Returns a PreciseTime of zero
+   */
   static const PreciseTime zero() {
     const PreciseTime ps;
     return ps;
   }
 
 private:
+  /*!
+   * \brief sanitizeNS If the internal counter for the nano seconds get over
+   * 999999999 we adjust the nanoseconds by adding to the internal seconds.
+   */
   void sanitizeNS() {
     if (nano_seconds > MAX_VALIDE_NS || nano_seconds < MIN_VALIDE_NS) {
       double seconds_from_nanoseconds = ns2s(nano_seconds.count());
@@ -476,6 +781,10 @@ private:
     }
   }
 
+  /*!
+   * \brief sanitizeS If the internal counter for the seconds 3599
+   * we adjust the seconds by adding to the internal hours.
+   */
   void sanitizeS() {
     /// Sanitize seconds
     if (seconds > MAX_VALIDE_S || seconds < MIN_VALIDE_S) {
@@ -491,6 +800,11 @@ private:
     }
   }
 
+  /*!
+   * \brief sanitizeSign Sometimes when substracting we end up with different
+   * signs: {10s} - {10ns} will lead to a internal value of {+10s and -10ns}. We
+   * have to adjust this to {9s and 999999990ns}.
+   */
   void sanitizeSign() {
     std::function<bool(long)> pos = [](long probe) { return probe >= 0; };
     std::function<bool(long)> neg = [](long probe) { return probe <= 0; };
@@ -527,6 +841,9 @@ private:
     }
   }
 
+  /*!
+   * \brief sanitize Combines all sanitize functions.
+   */
   void sanitize() {
 
     sanitizeNS();
@@ -543,20 +860,40 @@ private:
   static constexpr std::chrono::nanoseconds MIN_VALIDE_NS =
       std::chrono::nanoseconds(-999999999);
 
+  // internal value to save the nano seconds
   std::chrono::nanoseconds nano_seconds = std::chrono::nanoseconds::zero();
+
+  // internal value to save the seconds
   std::chrono::seconds seconds = std::chrono::seconds::zero();
+
+  // internal value to save the hours
   std::chrono::hours hours = std::chrono::hours::zero();
+
+  // internal value to save the unit: s, s^2, s^3...
+  int exponent = 1;
 };
 
 class Timer {
 public:
+  /*!
+   * \brief Destructor will print every timer into the cout.
+   */
   ~Timer() { std::cout << *this << std::endl; }
 
+  /*!
+   * \brief start starts a new measurement.
+   * \param s The name under which the measurement/timer shall be saved.
+   */
   void start(const std::string &s = "") {
     const Timer::precisionClock::time_point start = precisionClock::now();
     begin_measurements[s] = start;
   }
 
+  /*!
+   * \brief stop stops a started measurement, computes the time since start()
+   * and saves it. \param s The name under which the measurement/timer shall be
+   * saved.
+   */
   void stop(const std::string &s = "") {
     const Timer::precisionClock::time_point stop = precisionClock::now();
     const begin_measurements_it start = begin_measurements.find(s);
@@ -569,10 +906,10 @@ public:
         std::chrono::duration_cast<std::chrono::nanoseconds>(stop -
                                                              start->second);
     measurements[s].emplace_back(duration);
-
     results[s].needs_update = true;
   }
 
+  // struct to bundel the statistics for one timers measurments
   struct Result {
     PreciseTime min_measurement = PreciseTime::max();
     PreciseTime max_measurement = PreciseTime::min();
@@ -581,9 +918,11 @@ public:
     int number_measurements;
     bool needs_update = true;
 
+    /*!
+     * \brief Implements a clean print for the statistics.
+     */
     friend std::ostream &operator<<(std::ostream &os, const Result &r) {
-
-      os << "###Timer Result###" << std::endl
+      os << "###Result###" << std::endl
          << "E{X}: \t" << r.average << std::endl
          << "Max{X}: " << r.max_measurement << std::endl
          << "Min{X}: " << r.min_measurement << std::endl
@@ -593,6 +932,11 @@ public:
     }
   };
 
+  /*!
+   * \brief getResult Calculates for the given timer the statiscs and returns
+   * them
+   * \param name The name of the timer the statistics shall be calculated for.
+   */
   const Result &getResult(const std::string &name) {
 
     if (!results[name].needs_update) {
@@ -621,33 +965,49 @@ public:
 
     results[name].average = sum / results[name].number_measurements;
 
-    const double average_ms =
-        results[name].average.toDouble<std::chrono::nanoseconds>();
-    // variance
-    double var_sum = 0.;
-    for (const auto &measurement : timer->second) {
-      const double diff =
-          measurement.toDouble<std::chrono::nanoseconds>() - average_ms;
-
-      // avoid possible overflow when calculateing diff*diff: use PreciseTime
-      var_sum += diff * diff;
+    if (results[name].number_measurements < 2) {
+      return results[name];
     }
 
-    const double std_derivation =
-        std::sqrt(var_sum / results[name].number_measurements);
-    results[name].standard_derivation =
-        std::chrono::nanoseconds(static_cast<int>(std_derivation));
+    // variance
+    PreciseTime var_sum;
+    var_sum.setExponent(2);
+
+    for (const auto &measurement : timer->second) {
+      const PreciseTime diff_pt = measurement - results[name].average;
+      var_sum += diff_pt * diff_pt;
+    }
+
+    const PreciseTime variance =
+        var_sum / (results[name].number_measurements - 1);
+
+    results[name].standard_derivation = PreciseTime::sqrt(variance);
 
     results[name].needs_update = false;
     return results[name];
   }
 
+  /*!
+   * \brief Calculates for all saved measurments/timers the statistics and
+   * prints them.
+   */
   friend std::ostream &operator<<(std::ostream &os, Timer &t) {
     for (const auto &timer : t.measurements) {
       os << "Timer: " << timer.first << std::endl
          << t.getResult(timer.first) << std::endl;
     }
     return os;
+  }
+
+  /*!
+   * \brief toFile TODO
+   */
+  bool toFile(const std::string &file_path, const std::string &file_name) {
+
+    std::ofstream myfile;
+    myfile.open("file_name.txt");
+    myfile << "Writing this to a file.\n";
+    myfile.close();
   }
 
 private:
