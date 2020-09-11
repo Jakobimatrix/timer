@@ -1011,7 +1011,10 @@ public:
   }
 
 private:
-  typedef std::chrono::high_resolution_clock precisionClock;
+  typedef std::conditional<
+       std::chrono::high_resolution_clock::is_steady,
+       std::chrono::high_resolution_clock,
+       std::chrono::steady_clock >::type precisionClock;
 
   std::map<std::string, Timer::precisionClock::time_point> begin_measurements;
   typedef std::map<std::string, Timer::precisionClock::time_point>::iterator
