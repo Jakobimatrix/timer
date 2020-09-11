@@ -922,11 +922,11 @@ public:
      * \brief Implements a clean print for the statistics.
      */
     friend std::ostream &operator<<(std::ostream &os, const Result &r) {
-      os << "###Result###" << std::endl
-         << "E{X}: \t" << r.average << std::endl
-         << "Max{X}: " << r.max_measurement << std::endl
-         << "Min{X}: " << r.min_measurement << std::endl
-         << "D{X}: \t" << r.standard_derivation << std::endl
+      os << "###Result###" << "\n"
+         << "E{X}: \t" << r.average << "\n"
+         << "Max{X}: " << r.max_measurement << "\n"
+         << "Min{X}: " << r.min_measurement << "\n"
+         << "D{X}: \t" << r.standard_derivation << "\n"
          << "N: \t" << r.number_measurements << std::endl;
       return os;
     }
