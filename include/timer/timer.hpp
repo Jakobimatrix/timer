@@ -216,18 +216,6 @@ public:
   }
 
   PreciseTime(const std::chrono::hours &hours_) { hours = hours_; }
-
-  PreciseTime operator+(const PreciseTime &pt) const {
-    assert(pt.exponent == exponent &&
-           "You can not add different units like s + s^2");
-    PreciseTime ret(pt);
-    ret.nano_seconds += nano_seconds;
-    ret.seconds += seconds;
-    ret.hours += hours;
-
-    ret.sanitize();
-    return ret;
-  }
   ///
   ///
   /// </Construction Area>
@@ -257,21 +245,17 @@ public:
     sanitize();
   }
 
-  PreciseTime operator-(const PreciseTime &pt) const {
+  PreciseTime operator+(const PreciseTime &pt) const {
     assert(pt.exponent == exponent &&
-           "You can not substract different units like s + s^2");
-    PreciseTime ret(pt);
-    ret.nano_seconds -= nano_seconds;
-    ret.seconds -= seconds;
-    ret.hours -= hours;
-
-    ret.sanitize();
+           "You can not add different units like s + s^2");
+    PreciseTime ret(*this);
+    ret += pt;
     return ret;
   }
 
   void operator-=(const PreciseTime &pt) {
     assert(pt.exponent == exponent &&
-           "You can not substartc different units like s + s^2");
+           "You can not substartc different units like s - s^2");
     nano_seconds -= pt.nano_seconds;
     seconds -= pt.seconds;
     hours -= pt.hours;
@@ -279,29 +263,11 @@ public:
     sanitize();
   }
 
-  PreciseTime operator*(const double multi) const {
-    const double hours = this->hours.count() * multi;
-    double remaining_hours;
-    const double seconds_rest = h2s(std::modf(hours, &remaining_hours));
-
-    const double seconds = this->seconds.count() * multi + seconds_rest;
-    double remaining_seconds;
-    const double nanoseconds_rest =
-        s2ns(std::modf(seconds, &remaining_seconds));
-
-    const double nanoseconds =
-        this->nano_seconds.count() * multi + nanoseconds_rest;
-
-    PreciseTime ret;
-    ret.nano_seconds =
-        std::chrono::nanoseconds(static_cast<long>(std::round(nanoseconds)));
-    ret.seconds =
-        std::chrono::seconds(static_cast<long>(std::round(remaining_seconds)));
-    ret.hours =
-        std::chrono::hours(static_cast<long>(std::round(remaining_hours)));
-
-    ret.sanitize();
-    ret.exponent = exponent;
+  PreciseTime operator-(const PreciseTime &pt) const {
+    assert(pt.exponent == exponent &&
+           "You can not substract different units like s - s^2");
+    PreciseTime ret(*this);
+    ret -= pt;
     return ret;
   }
 
@@ -328,11 +294,18 @@ public:
     sanitize();
   }
 
+  PreciseTime operator*(const double multi) const {
+    PreciseTime ret(*this);
+    ret *= multi;
+    return ret;
+  }
+
   PreciseTime operator*(const PreciseTime &pt) const {
-    double resulting_ns = pt.toDouble<std::chrono::nanoseconds>() *
-                          toDouble<std::chrono::nanoseconds>();
-    PreciseTime ret(
-        std::chrono::nanoseconds(static_cast<int>(std::round(resulting_ns))));
+    double resulting_s =
+        pt.toDouble<std::chrono::seconds>() * toDouble<std::chrono::seconds>();
+
+    PreciseTime ret(std::chrono::nanoseconds(
+        static_cast<long>(std::round(s2ns(resulting_s)))));
     ret.exponent = pt.exponent + exponent;
     return ret;
   }
@@ -342,30 +315,19 @@ public:
   void operator/=(const double div) { *this *= (1. / div); }
 
   PreciseTime operator/(const PreciseTime &pt) const {
-    double resulting_ns = pt.toDouble<std::chrono::nanoseconds>() /
-                          toDouble<std::chrono::nanoseconds>();
-    PreciseTime ret(
-        std::chrono::nanoseconds(static_cast<int>(std::round(resulting_ns))));
+    double resulting_s =
+        pt.toDouble<std::chrono::seconds>() / toDouble<std::chrono::seconds>();
+    PreciseTime ret(std::chrono::nanoseconds(
+        static_cast<long>(std::round(s2ns(resulting_s)))));
     ret.exponent = exponent - pt.exponent;
     return ret;
-  }
-  ///
-  ///
-  /// </Arithmetics>
-
-  /// <Comparisons>
-  ///
-  ///
-  bool operator==(const PreciseTime &pt) const {
-    return pt.exponent == exponent && pt.nano_seconds == nano_seconds &&
-           pt.seconds == seconds && pt.hours == hours;
   }
 
   static const PreciseTime sqrt(const PreciseTime &pt) {
     assert(pt.exponent % 2 == 0 &&
            "squareroot of Precise time with odd exponent not supported.");
     PreciseTime ret(std::chrono::nanoseconds(static_cast<long>(
-        std::round(std::sqrt(pt.toDouble<std::chrono::nanoseconds>())))));
+        std::round(s2ns(std::sqrt(pt.toDouble<std::chrono::seconds>()))))));
 
     ret.exponent = pt.exponent;
     ret.exponent /= 2;
@@ -377,11 +339,23 @@ public:
            "squareroot of Precise time with odd exponent not supported.");
 
     PreciseTime ret(std::chrono::nanoseconds(static_cast<long>(
-        std::round(std::sqrt(toDouble<std::chrono::nanoseconds>())))));
+        std::round(s2ns(std::sqrt(toDouble<std::chrono::seconds>()))))));
 
     ret.exponent = ret.exponent;
     ret.exponent /= 2;
     *this = ret;
+  }
+
+  ///
+  ///
+  /// </Arithmetics>
+
+  /// <Comparisons>
+  ///
+  ///
+  bool operator==(const PreciseTime &pt) const {
+    return pt.exponent == exponent && pt.nano_seconds == nano_seconds &&
+           pt.seconds == seconds && pt.hours == hours;
   }
 
   bool operator!=(const PreciseTime &pt) const { return !(*this == pt); }
@@ -922,7 +896,8 @@ public:
      * \brief Implements a clean print for the statistics.
      */
     friend std::ostream &operator<<(std::ostream &os, const Result &r) {
-      os << "###Result###" << "\n"
+      os << "###Result###"
+         << "\n"
          << "E{X}: \t" << r.average << "\n"
          << "Max{X}: " << r.max_measurement << "\n"
          << "Min{X}: " << r.min_measurement << "\n"
@@ -1011,10 +986,9 @@ public:
   }
 
 private:
-  typedef std::conditional<
-       std::chrono::high_resolution_clock::is_steady,
-       std::chrono::high_resolution_clock,
-       std::chrono::steady_clock >::type precisionClock;
+  typedef std::conditional<std::chrono::high_resolution_clock::is_steady,
+                           std::chrono::high_resolution_clock,
+                           std::chrono::steady_clock>::type precisionClock;
 
   std::map<std::string, Timer::precisionClock::time_point> begin_measurements;
   typedef std::map<std::string, Timer::precisionClock::time_point>::iterator
