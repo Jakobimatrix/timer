@@ -24,6 +24,7 @@ A simple timer class easy to use. useing std::chrono
  - [x] add an example usage
  - [ ] have a nice way to print measurements to file
  - [ ] compute Frequency Distribution Table
+ - [ ] Tests
  
 ## Build the project (Linux)
 * If you use CMake to build your project place this repro inside 'path' and use **add_subdirectory(path/
