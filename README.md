@@ -1,6 +1,8 @@
 # timer
 A simple timer class easy to use. useing std::chrono
 
+Please use clang-tidy if you want to contribute: [easy installation](https://github.com/Jakobimatrix/initRepro)
+
 ### Features so far PreciseTime class:
  * adding/substracting with considering the unit: 1[s] + 1[s] -> ok; 1[s] + 1[s^2] -> error
  * division/multiplication with
