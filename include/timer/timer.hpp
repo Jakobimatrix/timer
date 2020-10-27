@@ -981,8 +981,12 @@ public:
 
     std::ofstream myfile;
     myfile.open("file_name.txt");
+    if(myfile.bad()){
+      return false;
+    }
     myfile << "Writing this to a file.\n";
     myfile.close();
+    return myfile.bad();
   }
 
 private:
