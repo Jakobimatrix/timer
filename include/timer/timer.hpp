@@ -78,7 +78,7 @@ int main() {
   std::cout << part_us.count() << std::endl;
 
   // if the time is 22ns and 450us and 12ms, This returns exact* 12450.022
-  //* double precision exact
+  // double precision exact
   double floatingPoint = my_time3.toDouble<exampleType>();
   std::cout << std::fixed << floatingPoint << std::endl << std::endl;
 
@@ -112,79 +112,126 @@ int main() {
 #ifndef TIMER_H
 #define TIMER_H
 
+#include <math.h>
+
 #include <cassert>
 #include <chrono>
 #include <fstream>
 #include <functional>
 #include <iostream>
 #include <map>
-#include <math.h>
 #include <string>
 #include <vector>
 
 namespace tool {
 
-/*!
+/*
  * \brief x2y(t x)
  * \param x time in x
  * \return time in y
  */
-template <class t> auto mu2ns(t micro) { return static_cast<t>(micro * 1000.); }
+template <class t>
+auto mu2ns(t micro) {
+  return static_cast<t>(micro * 1000.);
+}
 
-template <class t> auto ms2ns(t milli) {
+template <class t>
+auto ms2ns(t milli) {
   return static_cast<t>(milli * 1000000.);
 }
 
-template <class t> auto s2ns(t sec) {
+template <class t>
+auto s2ns(t sec) {
   return static_cast<t>(sec * 1000000000.);
 }
 
-template <class t> auto ns2us(t ns) { return static_cast<t>(ns / 1000.); }
+template <class t>
+auto ns2us(t ns) {
+  return static_cast<t>(ns / 1000.);
+}
 
-template <class t> auto us2ns(t us) { return static_cast<t>(us * 1000.); }
+template <class t>
+auto us2ns(t us) {
+  return static_cast<t>(us * 1000.);
+}
 
-template <class t> auto ns2ms(t ns) { return static_cast<t>(ns / 1000000.); }
+template <class t>
+auto ns2ms(t ns) {
+  return static_cast<t>(ns / 1000000.);
+}
 
-template <class t> auto ns2s(t ns) { return static_cast<t>(ns / 1000000000.); }
+template <class t>
+auto ns2s(t ns) {
+  return static_cast<t>(ns / 1000000000.);
+}
 
-template <class t> auto ns2m(t ns) {
+template <class t>
+auto ns2m(t ns) {
   return static_cast<t>(ns / (1000000000. * 60.));
 }
 
-template <class t> auto ns2h(t ns) {
+template <class t>
+auto ns2h(t ns) {
   return static_cast<t>(ns / (1000000000. * 3600.));
 }
 
-template <class t> auto m2s(t m) { return static_cast<t>(m * 60.); }
+template <class t>
+auto m2s(t m) {
+  return static_cast<t>(m * 60.);
+}
 
-template <class t> auto h2s(t h) { return static_cast<t>(h * 3600.); }
+template <class t>
+auto h2s(t h) {
+  return static_cast<t>(h * 3600.);
+}
 
-template <class t> auto h2m(t h) { return static_cast<t>(h * 60.); }
+template <class t>
+auto h2m(t h) {
+  return static_cast<t>(h * 60.);
+}
 
-template <class t> auto h2ms(t h) { return static_cast<t>(h * 3600. * 1000.); }
+template <class t>
+auto h2ms(t h) {
+  return static_cast<t>(h * 3600. * 1000.);
+}
 
-template <class t> auto h2us(t h) {
+template <class t>
+auto h2us(t h) {
   return static_cast<t>(h * 3600. * 1000000.);
 }
 
-template <class t> auto h2ns(t h) {
+template <class t>
+auto h2ns(t h) {
   return static_cast<t>(h * 3600. * 1000000000.);
 }
 
-template <class t> auto s2us(t s) { return static_cast<t>(s * 1000000.); }
+template <class t>
+auto s2us(t s) {
+  return static_cast<t>(s * 1000000.);
+}
 
-template <class t> auto s2ms(t s) { return static_cast<t>(s * 1000.); }
+template <class t>
+auto s2ms(t s) {
+  return static_cast<t>(s * 1000.);
+}
 
-template <class t> auto s2m(t s) { return static_cast<t>(s / 60.); }
+template <class t>
+auto s2m(t s) {
+  return static_cast<t>(s / 60.);
+}
 
-template <class t> auto s2h(t s) { return static_cast<t>(s / 3600.); }
+template <class t>
+auto s2h(t s) {
+  return static_cast<t>(s / 3600.);
+}
 
-template <class t> auto s2hf(t s) {
+template <class t>
+auto s2hf(t s) {
   return static_cast<t>(std::floor(s / 3600.));
 }
 
 class PreciseTime {
-public:
+ public:
   /// <Construction Area>
   ///
   ///
@@ -278,18 +325,15 @@ public:
 
     const double seconds = this->seconds.count() * multi + seconds_rest;
     double remaining_seconds;
-    const double nanoseconds_rest =
-        s2ns(std::modf(seconds, &remaining_seconds));
+    const double nanoseconds_rest = s2ns(std::modf(seconds, &remaining_seconds));
 
-    const double nanoseconds =
-        this->nano_seconds.count() * multi + nanoseconds_rest;
+    const double nanoseconds = this->nano_seconds.count() * multi + nanoseconds_rest;
 
     this->nano_seconds =
         std::chrono::nanoseconds(static_cast<long>(std::round(nanoseconds)));
     this->seconds =
         std::chrono::seconds(static_cast<long>(std::round(remaining_seconds)));
-    this->hours =
-        std::chrono::hours(static_cast<long>(std::round(remaining_hours)));
+    this->hours = std::chrono::hours(static_cast<long>(std::round(remaining_hours)));
 
     sanitize();
   }
@@ -304,8 +348,8 @@ public:
     double resulting_s =
         pt.toDouble<std::chrono::seconds>() * toDouble<std::chrono::seconds>();
 
-    PreciseTime ret(std::chrono::nanoseconds(
-        static_cast<long>(std::round(s2ns(resulting_s)))));
+    PreciseTime ret(
+        std::chrono::nanoseconds(static_cast<long>(std::round(s2ns(resulting_s)))));
     ret.exponent = pt.exponent + exponent;
     return ret;
   }
@@ -317,8 +361,8 @@ public:
   PreciseTime operator/(const PreciseTime &pt) const {
     double resulting_s =
         pt.toDouble<std::chrono::seconds>() / toDouble<std::chrono::seconds>();
-    PreciseTime ret(std::chrono::nanoseconds(
-        static_cast<long>(std::round(s2ns(resulting_s)))));
+    PreciseTime ret(
+        std::chrono::nanoseconds(static_cast<long>(std::round(s2ns(resulting_s)))));
     ret.exponent = exponent - pt.exponent;
     return ret;
   }
@@ -410,9 +454,7 @@ public:
    * \return the time as a double in the given unit.
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::nanoseconds>::value,
-                          double>::type
-  toDouble() const {
+  typename std::enable_if<std::is_same<c, std::chrono::nanoseconds>::value, double>::type toDouble() const {
     return h2ns(static_cast<double>(hours.count())) +
            s2ns(static_cast<double>(seconds.count())) +
            static_cast<double>(nano_seconds.count());
@@ -424,9 +466,7 @@ public:
    * \return the time as a double in the given unit.
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::microseconds>::value,
-                          double>::type
-  toDouble() const {
+  typename std::enable_if<std::is_same<c, std::chrono::microseconds>::value, double>::type toDouble() const {
     return h2us(static_cast<double>(hours.count())) +
            s2us(static_cast<double>(seconds.count())) +
            ns2us(static_cast<double>(nano_seconds.count()));
@@ -438,9 +478,7 @@ public:
    * \return the time as a double in the given unit.
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::milliseconds>::value,
-                          double>::type
-  toDouble() const {
+  typename std::enable_if<std::is_same<c, std::chrono::milliseconds>::value, double>::type toDouble() const {
     return h2ms(static_cast<double>(hours.count())) +
            s2ms(static_cast<double>(seconds.count())) +
            ns2ms(static_cast<double>(nano_seconds.count()));
@@ -452,9 +490,7 @@ public:
    * \return the time as a double in the given unit.
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::seconds>::value,
-                          double>::type
-  toDouble() const {
+  typename std::enable_if<std::is_same<c, std::chrono::seconds>::value, double>::type toDouble() const {
     return h2s(static_cast<double>(hours.count())) +
            static_cast<double>(seconds.count()) +
            ns2s(static_cast<double>(nano_seconds.count()));
@@ -466,9 +502,7 @@ public:
    * \return the time as a double in the given unit.
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::minutes>::value,
-                          double>::type
-  toDouble() const {
+  typename std::enable_if<std::is_same<c, std::chrono::minutes>::value, double>::type toDouble() const {
     return h2m(static_cast<double>(hours.count())) +
            s2m(static_cast<double>(seconds.count())) +
            ns2m(static_cast<double>(nano_seconds.count()));
@@ -480,9 +514,7 @@ public:
    * \return the time as a double in the given unit.
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::hours>::value,
-                          double>::type
-  toDouble() const {
+  typename std::enable_if<std::is_same<c, std::chrono::hours>::value, double>::type toDouble() const {
     return static_cast<double>(hours.count()) +
            s2h(static_cast<double>(seconds.count())) +
            ns2h(static_cast<double>(nano_seconds.count()));
@@ -496,11 +528,9 @@ public:
    * = 7364040066012ns
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::nanoseconds>::value,
-                          c>::type
-  convert() const {
-    return std::chrono::nanoseconds(
-        h2ns(hours.count()) + s2ns(seconds.count()) + nano_seconds.count());
+  typename std::enable_if<std::is_same<c, std::chrono::nanoseconds>::value, c>::type convert() const {
+    return std::chrono::nanoseconds(h2ns(hours.count()) + s2ns(seconds.count()) +
+                                    nano_seconds.count());
   }
 
   /*!
@@ -511,11 +541,8 @@ public:
    * 7364040066us
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::microseconds>::value,
-                          c>::type
-  convert() const {
-    return std::chrono::microseconds(h2us(hours.count()) +
-                                     s2us(seconds.count()) +
+  typename std::enable_if<std::is_same<c, std::chrono::microseconds>::value, c>::type convert() const {
+    return std::chrono::microseconds(h2us(hours.count()) + s2us(seconds.count()) +
                                      ns2us(nano_seconds.count()));
   }
 
@@ -526,11 +553,8 @@ public:
    * will return (3600*2h + 60*3m + 44s)*1000 + 40ms= 7364040ms
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::milliseconds>::value,
-                          c>::type
-  convert() const {
-    return std::chrono::milliseconds(h2ms(hours.count()) +
-                                     s2ms(seconds.count()) +
+  typename std::enable_if<std::is_same<c, std::chrono::milliseconds>::value, c>::type convert() const {
+    return std::chrono::milliseconds(h2ms(hours.count()) + s2ms(seconds.count()) +
                                      ns2ms(nano_seconds.count()));
   }
 
@@ -541,8 +565,7 @@ public:
    * return 3600*2h + 60*3m + 44s= 7364s
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::seconds>::value, c>::type
-  convert() const {
+  typename std::enable_if<std::is_same<c, std::chrono::seconds>::value, c>::type convert() const {
     return std::chrono::seconds(h2s(hours.count())) + seconds;
   }
 
@@ -553,8 +576,7 @@ public:
    * return 60*2h + 3m = 123m
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::minutes>::value, c>::type
-  convert() const {
+  typename std::enable_if<std::is_same<c, std::chrono::minutes>::value, c>::type convert() const {
     return std::chrono::minutes(s2m(seconds.count() + h2m(hours.count())));
     ;
   }
@@ -566,8 +588,7 @@ public:
    * return 2h
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::hours>::value, c>::type
-  convert() const {
+  typename std::enable_if<std::is_same<c, std::chrono::hours>::value, c>::type convert() const {
     return hours;
   }
 
@@ -577,9 +598,7 @@ public:
    * return 12ns
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::nanoseconds>::value,
-                          c>::type
-  get() const {
+  typename std::enable_if<std::is_same<c, std::chrono::nanoseconds>::value, c>::type get() const {
     const long ns = nano_seconds.count();
     if (std::abs(ns) > 999) {
       double us;
@@ -595,9 +614,7 @@ public:
    * return 66us
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::microseconds>::value,
-                          c>::type
-  get() const {
+  typename std::enable_if<std::is_same<c, std::chrono::microseconds>::value, c>::type get() const {
     const long us =
         ns2us(nano_seconds.count() - get<std::chrono::nanoseconds>().count());
     if (std::abs(us) > 999) {
@@ -614,9 +631,7 @@ public:
    * return 40ms
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::milliseconds>::value,
-                          c>::type
-  get() const {
+  typename std::enable_if<std::is_same<c, std::chrono::milliseconds>::value, c>::type get() const {
     const long ms =
         ns2ms(nano_seconds.count() - get<std::chrono::microseconds>().count());
     if (std::abs(ms) > 999) {
@@ -633,8 +648,7 @@ public:
    * return 44s
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::seconds>::value, c>::type
-  get() const {
+  typename std::enable_if<std::is_same<c, std::chrono::seconds>::value, c>::type get() const {
     const long sec = seconds.count();
     if (std::abs(sec) > 59) {
       double m;
@@ -650,8 +664,7 @@ public:
    * return 3m
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::minutes>::value, c>::type
-  get() const {
+  typename std::enable_if<std::is_same<c, std::chrono::minutes>::value, c>::type get() const {
     const long m = s2m(seconds.count() - get<std::chrono::seconds>().count());
     if (std::abs(m) > 59) {
       double h;
@@ -667,8 +680,7 @@ public:
    * return 2h
    */
   template <class c>
-  typename std::enable_if<std::is_same<c, std::chrono::hours>::value, c>::type
-  get() const {
+  typename std::enable_if<std::is_same<c, std::chrono::hours>::value, c>::type get() const {
     return hours;
   }
 
@@ -735,7 +747,7 @@ public:
     return ps;
   }
 
-private:
+ private:
   /*!
    * \brief sanitizeNS If the internal counter for the nano seconds get over
    * 999999999 we adjust the nanoseconds by adding to the internal seconds.
@@ -748,8 +760,8 @@ private:
       const long carry_seconds_l = static_cast<long>(std::round(carry_seconds));
 
       // substract the nanoseconds which made up a second
-      nano_seconds = std::chrono::nanoseconds(nano_seconds.count() -
-                                              s2ns(carry_seconds_l));
+      nano_seconds =
+          std::chrono::nanoseconds(nano_seconds.count() - s2ns(carry_seconds_l));
       // add them to the seconds
       seconds += std::chrono::seconds(carry_seconds_l);
     }
@@ -793,7 +805,7 @@ private:
       } else if (seconds.count() > 0) {
         sign = pos;
       } else {
-        return; // we dont need to worry about different signs
+        return;  // we dont need to worry about different signs
       }
     }
 
@@ -825,10 +837,8 @@ private:
     sanitizeSign();
   }
 
-  static constexpr std::chrono::seconds MAX_VALIDE_S =
-      std::chrono::seconds(3599);
-  static constexpr std::chrono::seconds MIN_VALIDE_S =
-      std::chrono::seconds(-3599);
+  static constexpr std::chrono::seconds MAX_VALIDE_S = std::chrono::seconds(3599);
+  static constexpr std::chrono::seconds MIN_VALIDE_S = std::chrono::seconds(-3599);
   static constexpr std::chrono::nanoseconds MAX_VALIDE_NS =
       std::chrono::nanoseconds(999999999);
   static constexpr std::chrono::nanoseconds MIN_VALIDE_NS =
@@ -848,7 +858,7 @@ private:
 };
 
 class Timer {
-public:
+ public:
   /*!
    * \brief Destructor will print every timer into the cout.
    */
@@ -877,8 +887,7 @@ public:
     }
 
     const std::chrono::nanoseconds duration =
-        std::chrono::duration_cast<std::chrono::nanoseconds>(stop -
-                                                             start->second);
+        std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start->second);
     measurements[s].emplace_back(duration);
     results[s].needs_update = true;
   }
@@ -953,8 +962,7 @@ public:
       var_sum += diff_pt * diff_pt;
     }
 
-    const PreciseTime variance =
-        var_sum / (results[name].number_measurements - 1);
+    const PreciseTime variance = var_sum / (results[name].number_measurements - 1);
 
     results[name].standard_derivation = PreciseTime::sqrt(variance);
 
@@ -977,31 +985,58 @@ public:
   /*!
    * \brief toFile TODO
    */
-  bool toFile(const std::string &file_path, const std::string &file_name) {
+  bool toFile(const std::string &file_name) {
 
     std::ofstream myfile;
-    myfile.open("file_name.txt");
-    if(myfile.bad()){
+    myfile.open(file_name);
+    if (myfile.bad()) {
       return false;
     }
-    myfile << "Writing this to a file.\n";
+    myfile << this;
     myfile.close();
     return myfile.bad();
   }
 
-private:
+ private:
   typedef std::conditional<std::chrono::high_resolution_clock::is_steady,
                            std::chrono::high_resolution_clock,
                            std::chrono::steady_clock>::type precisionClock;
 
   std::map<std::string, Timer::precisionClock::time_point> begin_measurements;
-  typedef std::map<std::string, Timer::precisionClock::time_point>::iterator
-      begin_measurements_it;
+  typedef std::map<std::string, Timer::precisionClock::time_point>::iterator begin_measurements_it;
   std::map<std::string, std::vector<PreciseTime>> measurements;
 
   std::map<std::string, Result> results;
 };
 
-} // namespace tool
+
+class SingleTimer {
+ public:
+  void start() {
+    started = true;
+    start_ = precisionClock::now();
+  }
+
+  void stop() { started = false; }
+
+  bool hasStarted() const { return started; }
+
+  template <class T>
+  T getPassedTime() const {
+    const SingleTimer::precisionClock::time_point stop = precisionClock::now();
+    return std::chrono::duration_cast<T>(stop - start_);
+  }
+
+
+ private:
+  typedef std::conditional<std::chrono::high_resolution_clock::is_steady,
+                           std::chrono::high_resolution_clock,
+                           std::chrono::steady_clock>::type precisionClock;
+
+  SingleTimer::precisionClock::time_point start_;
+  bool started = false;
+};
+
+}  // namespace tool
 
 #endif
