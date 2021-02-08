@@ -27,6 +27,7 @@ Please use clang-tidy if you want to contribute: [easy installation](https://git
  - [ ] have a nice way to print measurements to file
  - [ ] compute Frequency Distribution Table
  - [ ] Tests
+ - [ ] A dynamic PreciseTime where the user can specify the needed resolution and the max time span to optimise calculation
  
 ## Build the project (Linux)
 * If you use CMake to build your project place this repro inside 'path' and use **add_subdirectory(path/
