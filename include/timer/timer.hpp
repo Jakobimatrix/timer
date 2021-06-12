@@ -237,32 +237,31 @@ class PreciseTime {
   ///
   PreciseTime() {}
 
-  PreciseTime(const std::chrono::nanoseconds &nano_seconds_) {
-    nano_seconds = nano_seconds_;
+  explicit PreciseTime(const std::chrono::nanoseconds &nano_seconds)
+      : nano_seconds(nano_seconds) {
     sanitize();
   }
 
-  PreciseTime(const std::chrono::microseconds &micro_seconds_) {
-    nano_seconds = std::chrono::nanoseconds(mu2ns(micro_seconds_.count()));
+  explicit PreciseTime(const std::chrono::microseconds &micro_seconds)
+      : nano_seconds(std::chrono::nanoseconds(mu2ns(micro_seconds.count()))) {
     sanitize();
   }
 
-  PreciseTime(const std::chrono::milliseconds &milli_seconds_) {
-    nano_seconds = std::chrono::nanoseconds(ms2ns(milli_seconds_.count()));
+  explicit PreciseTime(const std::chrono::milliseconds &milli_seconds)
+      : nano_seconds(std::chrono::nanoseconds(ms2ns(milli_seconds.count()))) {
     sanitize();
   }
 
-  PreciseTime(const std::chrono::seconds &seconds_) {
-    seconds = seconds_;
+  explicit PreciseTime(const std::chrono::seconds &seconds) : seconds(seconds) {
     sanitize();
   }
 
-  PreciseTime(const std::chrono::minutes &minutes_) {
-    seconds = std::chrono::seconds(m2s(minutes_.count()));
+  explicit PreciseTime(const std::chrono::minutes &minutes)
+      : seconds(std::chrono::seconds(m2s(minutes.count()))) {
     sanitize();
   }
 
-  PreciseTime(const std::chrono::hours &hours_) { hours = hours_; }
+  explicit PreciseTime(const std::chrono::hours &hours) : hours(hours) {}
   ///
   ///
   /// </Construction Area>
@@ -319,21 +318,19 @@ class PreciseTime {
   }
 
   void operator*=(const double multi) {
-    const double hours = this->hours.count() * multi;
+    const double hours_ = hours.count() * multi;
     double remaining_hours;
-    const double seconds_rest = h2s(std::modf(hours, &remaining_hours));
+    const double seconds_rest = h2s(std::modf(hours_, &remaining_hours));
 
-    const double seconds = this->seconds.count() * multi + seconds_rest;
+    const double seconds_ = seconds.count() * multi + seconds_rest;
     double remaining_seconds;
-    const double nanoseconds_rest = s2ns(std::modf(seconds, &remaining_seconds));
+    const double nanoseconds_rest = s2ns(std::modf(seconds_, &remaining_seconds));
 
-    const double nanoseconds = this->nano_seconds.count() * multi + nanoseconds_rest;
+    const double nanoseconds_ = nano_seconds.count() * multi + nanoseconds_rest;
 
-    this->nano_seconds =
-        std::chrono::nanoseconds(static_cast<long>(std::round(nanoseconds)));
-    this->seconds =
-        std::chrono::seconds(static_cast<long>(std::round(remaining_seconds)));
-    this->hours = std::chrono::hours(static_cast<long>(std::round(remaining_hours)));
+    nano_seconds = std::chrono::nanoseconds(static_cast<long>(std::round(nanoseconds_)));
+    seconds = std::chrono::seconds(static_cast<long>(std::round(remaining_seconds)));
+    hours = std::chrono::hours(static_cast<long>(std::round(remaining_hours)));
 
     sanitize();
   }
@@ -385,7 +382,7 @@ class PreciseTime {
     PreciseTime ret(std::chrono::nanoseconds(static_cast<long>(
         std::round(s2ns(std::sqrt(toDouble<std::chrono::seconds>()))))));
 
-    ret.exponent = ret.exponent;
+    ret.exponent = exponent;
     ret.exponent /= 2;
     *this = ret;
   }
@@ -700,21 +697,21 @@ class PreciseTime {
       return "";
     };
 
-    const long hours = pt.get<std::chrono::hours>().count();
-    const long minutes = pt.get<std::chrono::minutes>().count();
-    const long seconds = pt.get<std::chrono::seconds>().count();
+    const long hours_ = pt.get<std::chrono::hours>().count();
+    const long minutes_ = pt.get<std::chrono::minutes>().count();
+    const long seconds_ = pt.get<std::chrono::seconds>().count();
     const long ms = pt.get<std::chrono::milliseconds>().count();
     const long us = pt.get<std::chrono::microseconds>().count();
     const long ns = pt.get<std::chrono::nanoseconds>().count();
     const std::string exp = std::to_string(pt.exponent);
 
     // clang-format off
-    os << "{h: ["  << hours   << "] " << blanks(hours)
-       << "m: ["  << minutes << "] " << blanks(minutes)
-       << "s: ["  << seconds << "] " << blanks(seconds)
+    os << "{h: ["  << hours_   << "] " << blanks(hours_)
+       << "m: ["  << minutes_ << "] " << blanks(minutes_)
+       << "s: ["  << seconds_ << "] " << blanks(seconds_)
        << "ms: [" << ms << "] " << blanks(ms)
        << "us: [" << us << "] " << blanks(us)
-       << "ns: [" << ns  << "]}^"<<exp;
+       << "ns: [" << ns  << "]}^"<< exp;
     // clang-format on
     return os;
   }
@@ -831,7 +828,6 @@ class PreciseTime {
    * \brief sanitize Combines all sanitize functions.
    */
   void sanitize() {
-
     sanitizeNS();
     sanitizeS();
     sanitizeSign();
@@ -880,14 +876,14 @@ class Timer {
    */
   void stop(const std::string &s = "") {
     const Timer::precisionClock::time_point stop = precisionClock::now();
-    const begin_measurements_it start = begin_measurements.find(s);
-    if (start == begin_measurements.end()) {
+    const begin_measurements_it start_ = begin_measurements.find(s);
+    if (start_ == begin_measurements.end()) {
       // TODO debugMsg: The timer with name s was never started
       return;
     }
 
     const std::chrono::nanoseconds duration =
-        std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start->second);
+        std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start_->second);
     measurements[s].emplace_back(duration);
     results[s].needs_update = true;
   }
@@ -1014,7 +1010,7 @@ class SingleTimer {
  public:
   void start() {
     started = true;
-    start_ = precisionClock::now();
+    start_time = precisionClock::now();
   }
 
   void stop() { started = false; }
@@ -1023,8 +1019,11 @@ class SingleTimer {
 
   template <class T>
   T getPassedTime() const {
-    const SingleTimer::precisionClock::time_point stop = precisionClock::now();
-    return std::chrono::duration_cast<T>(stop - start_);
+    const SingleTimer::precisionClock::time_point stop_time = precisionClock::now();
+    if (!started) {
+      return std::chrono::duration_cast<T>(stop_time - stop_time);
+    }
+    return std::chrono::duration_cast<T>(stop_time - start_time);
   }
 
 
@@ -1033,7 +1032,7 @@ class SingleTimer {
                            std::chrono::high_resolution_clock,
                            std::chrono::steady_clock>::type precisionClock;
 
-  SingleTimer::precisionClock::time_point start_;
+  SingleTimer::precisionClock::time_point start_time;
   bool started = false;
 };
 
