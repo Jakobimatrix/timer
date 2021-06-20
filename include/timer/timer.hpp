@@ -1013,7 +1013,7 @@ class SingleTimer {
     start_time = precisionClock::now();
   }
 
-  void stop() { started = false; }
+  void reset() { started = false; }
 
   bool hasStarted() const { return started; }
 
