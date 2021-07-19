@@ -47,12 +47,6 @@ timer)** and **target_link_libraries(your_lib timer_lib)**
 #include <random>
 #include <unistd.h>
 
-#include <random>
-#include <string>
-#include <cmath>
-#include "timer.hpp"
-
-
 // from https://github.com/google/benchmark/blob/main/include/benchmark/benchmark.h
 #define BENCHMARK_ALWAYS_INLINE __attribute__((always_inline))
 
@@ -77,7 +71,6 @@ constexpr double fastModF(double x, double& full) noexcept {
 
 
 int main() {
-
   constexpr tool::PreciseTime max_pt = tool::PreciseTime::max();
   constexpr tool::PreciseTime min_pt = tool::PreciseTime::min();
   std::cout << "max: " << max_pt << "\n"
