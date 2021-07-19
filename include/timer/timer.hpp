@@ -1245,16 +1245,17 @@ class Timer {
           size_t current_bucket_nr = current_bucket[i];
           // Todo interpolation would be more precise than "fitting the center into the new histogram bucket".
           // But than again, one should use a graphical tool for a precise histogram anyway.
-          const auto bucket_center = current_buckets[current_bucket_nr].getBucketCenter();
+          const auto &current_bucket_ref = current_buckets[current_bucket_nr];
+          const auto bucket_comb_histo_center = bucket_comb_histo.getBucketCenter();
 
-          if (bucket_center > bucket_comb_histo.end) {
+          if (bucket_comb_histo_center < current_bucket_ref.begin) {
             number_color[i] = std::pair<size_t, size_t>(0, i);  // not drawn
             continue;  // this histogram starts later
           }
 
-          if (bucket_center < bucket_comb_histo.begin) {
+          if (bucket_comb_histo_center > current_bucket_ref.end) {
             // we have to increase the current bucket
-            current_bucket[i]++;
+            current_bucket_nr = ++current_bucket[i];
             if (current_bucket[i] == current_buckets.size()) {
               number_color[i] = std::pair<size_t, size_t>(0, i);  // not drawn anymore
               continue;  // we are at the end, no more buckets in current_buckets;
@@ -1557,9 +1558,13 @@ class Timer {
         if (result.h.buckets.size() > b) {
           const Histogram::Bucket &bucket = result.h.buckets[b];
           const double val = bucket.getBucketCenter().toDouble<T>();
-          input_line += std::to_string(val) + seperator + std::to_string(bucket.num) + seperator;
+          const double normed_value =
+              static_cast<double>(bucket.num) /
+              static_cast<double>(result.number_measurements - result.number_outliners);
+          input_line += std::to_string(val) + seperator +
+                        std::to_string(normed_value) + seperator;
         } else {
-          input_line += seperator + seperator;
+          input_line += ' ' + seperator + ' ' + seperator;
         }
       }
       inputIntoFile();
