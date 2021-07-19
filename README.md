@@ -21,13 +21,18 @@ Please use clang-tidy if you want to contribute: [easy installation](https://git
  * As many timers as you like.
  * On demand output of max, min, mean, standard deviation for all timers.
  * Print Histogram fo measurements into console
- * Print multiple histograms on top of each other for better comparison.
+ * Write multiple histograms on top of each other for better comparison.
+ * Write measurements to file for further investigation in favourite table calculation or MATLAB
+ * Print histogram to file for further investigation in your favourite table calculation (choose X-Y-Plot) or MATLAB.
+ 
+### Features SimpleTimer class:
+ * Start/Reset/getTimeTime without saving measurements. No overheat.
  
 ## Todos
  - [x] Better conversations between ns, ms ,s
  - [x] add commentary
  - [x] add an example usage
- - [ ] have a nice way to print measurements to file
+ - [x] have a nice way to print measurements to file
  - [x] compute Frequency Distribution Table
  - [ ] Tests
  - [ ] A dynamic PreciseTime where the user can specify the needed resolution and the max time span to optimise calculation
@@ -177,6 +182,11 @@ int main() {
     DoNotOptimize(decimals_mine);
 
   }
+  
+  timer.histogramToFile<std::chrono::nanoseconds>("/tmp/histo.csv", ';');
+  timer.measurementsToFile<std::chrono::nanoseconds>("/tmp/measure.csv", ';');
+  
+  // print to console
   std::vector<tool::Timer::Result>results(2);
   timer.getResult(timer_std_modf, results[0]);
   timer.getResult(timer_my_mod_f, results[1]);

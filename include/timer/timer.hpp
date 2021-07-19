@@ -1,6 +1,6 @@
 /*
  * \file: timer.hpp
- * \brief: Implements the PreciseTime class useing std::chrono. 
+ * \brief: Implements the PreciseTime class useing std::chrono.
  * Implements an easy to use timer class as well as an PreciseTime class.
  * \date: 17.07.2021
  * \author: Jakob Wandel
@@ -12,12 +12,14 @@
 
 #include <math.h>
 
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <fstream>
 #include <functional>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <sstream>
 #include <string>
@@ -925,9 +927,9 @@ class Timer {
   }
 
   /*!
-   * \brief stop stops a started measurement, computes the time since start()
-   * and saves it. \param s The name under which the measurement/timer shall be
-   * saved.
+   * \brief Stops a started measurement, computes the time since start()
+   * and saves it.
+   * \param s The name under which the measurement/timer shall be saved.
    */
   void stop(const std::string &s = "") noexcept {
     const Timer::precisionClock::time_point stop = precisionClock::now();
@@ -942,24 +944,50 @@ class Timer {
     measurements[s].emplace_back(duration);
   }
 
+  /*!
+   * \brief Struckt to hold information about a Histogram.
+   */
   struct Histogram {
+
+    /*!
+     * \brief Struckt to store information about how much measurements fall into a Range = Bucket.
+     */
     struct Bucket {
       PreciseTime begin;
       PreciseTime end;
-      int num;
+      int num = 0;
+
+      /*!
+       * \brief Calculates the time between in the center of the bucket/Range.
+       * \return a PreciseTime: The center of the bucket.
+       */
       PreciseTime getBucketCenter() const noexcept {
-        return (end - begin) / 2.;
+        return (end - begin) / 2. + begin;
       }
     };
+
     std::vector<Bucket> buckets;
     PreciseTime bucket_size;
     int max_num_in_bucket = 0;
 
+    /*!
+     * \brief Calculates the bucket size according to Scott's Rule.
+     * \param num_values Number of measurements
+     * \param std_dev The standard deviation of the measurements.
+     * \return The computed bucket size.
+     */
     PreciseTime scottsRuleBucketSize(size_t num_values, const PreciseTime &std_dev) const noexcept {
       const double num_good_values = static_cast<double>(num_values);
       return std_dev * 3.49 * 1. / std::cbrt(num_good_values);
     }
 
+    /*!
+     * \brief Initiates the inner vector of Buckets to be ready to input values.
+     * \param bucket_size_ The size of one Bucket in the histogram.
+     * \param min The minimal value/Time the histogram shall display.
+     * \param max The maximal value/Time the histogram shall display.
+     * \return The computed bucket size.
+     */
     void initBuckets(const PreciseTime &bucket_size_,
                      const PreciseTime &min,
                      const PreciseTime &max) {
@@ -985,6 +1013,12 @@ class Timer {
       }
     }
 
+    /*!
+     * \brief Returns a number of white spaces in a speciffic color. Works only in Linux shell.
+     * \param color A number for different color output (e.g. the position in an array).
+     * \param num_tiles The number of spaces to be colored.
+     * \return A string with num_tiles spaces with the command to color these spaces.
+     */
     static std::string colorCmdBgTile(size_t color, size_t num_tiles) {
       constexpr size_t NUM_COLORS = 10;
       if (color >= NUM_COLORS) {
@@ -1031,13 +1065,22 @@ class Timer {
     }
   };
 
-  // struct to bundel the statistics for one timers measurments
+  /*!
+   * \brief Struct to bundel the results of N measurements.
+   */
   struct Result {
 
+    /*!
+     * \brief Set the range for the outliner detection: Every measurement smaller than mean - dev*n_times_deviation and greater than mean - dev*n_times_deviation is considdered to be an outliner.
+     * n_times_deviation the range for the outliner detection. Default is 3.5 which is more than 99.9% of all measurements if the measurements follow a normal distribution.
+     */
     void setOutlinerRange(double n_times_deviation) noexcept {
       outliner_range = n_times_deviation;
     }
 
+    /*!
+     * \brief Helper function to calculate the maximal size of character in the cmd plot, depending on num_char_terminal_width
+     */
     size_t calcPlotSize() const noexcept {
       // clang-format off
       // <   BucketSizeInfo  ><PLOT>  <-- maximal r.num_char_terminal_width characters.
@@ -1047,6 +1090,16 @@ class Timer {
       return std::max(50ul, num_char_terminal_width - BucketSizeInfo);
     }
 
+    /*!
+     * \brief Sets the width of the terminal for the drawing of the histogram. Default is 80 characters.
+     */
+    void setCharWidthOfTerminal(size_t terminal_width) noexcept {
+      num_char_terminal_width = terminal_width;
+    }
+
+    /*!
+     * \brief Nice output stream for one Results statistical values. Expects Results to be complete Initiated.
+     */
     void streamOutBaseStatistics(std::ostream &os, const Result &r) const {
       os << "###Result of <" << r.timer_name << ">###"
          << "\n"
@@ -1058,6 +1111,9 @@ class Timer {
          << "N outliners.: \t" << r.number_outliners << "\n";
     }
 
+    /*!
+     * \brief Nice output stream for one Results histogram. Expects Results to be complete Initiated.
+     */
     void streamOutHistogram(std::ostream &os, const Result &r) const {
 
       const double smallest_unit =
@@ -1098,7 +1154,7 @@ class Timer {
     }
 
     /*!
-     * \brief Implements a clean print for the statistics.
+     * \brief Implements a clean print for the statistics. Expects Results to be complete Initiated.
      */
     friend std::ostream &operator<<(std::ostream &os, const Result &r) {
       r.streamOutBaseStatistics(os, r);
@@ -1107,7 +1163,7 @@ class Timer {
     }
 
     /*!
-     * \brief Implements a clean print for the statistics.
+     * \brief Implements a clean print for an vector of statistics. Expects Results to be complete Initiated.
      */
     friend std::ostream &operator<<(std::ostream &os, const std::vector<Result> &rs) {
       if (rs.size() == 0) {
@@ -1245,7 +1301,6 @@ class Timer {
       return os;
     }
 
-
     std::string timer_name;
     PreciseTime min_measurement = PreciseTime::max();
     PreciseTime max_measurement = PreciseTime::min();
@@ -1256,8 +1311,6 @@ class Timer {
     double outliner_range = 3.5;
     size_t num_char_terminal_width = 80;
     std::vector<char> is_outliner;
-
-
     Histogram h;
   };
 
@@ -1403,18 +1456,116 @@ class Timer {
   }
 
   /*!
-   * \brief toFile TODO
+   * \brief Writes all measurements from all timers into the given file (appends) for further analysis with Excel or Matlab.
+   * \template a std::chrono duration in which the time (as double values) should be printed.
+   * \param file_name The name of the file to write into. If its a path, the path must exist.
+   * \param seperator A character to seperate the input fields.
+   * \return true if writeing was successfull.
    */
-  bool toFile(const std::string &file_name) {
+  template <class T>
+  bool measurementsToFile(const std::string &file_name, char seperator) {
 
-    std::ofstream myfile;
-    myfile.open(file_name);
-    if (myfile.bad()) {
+    const size_t num_timers = measurements.size();
+    if (num_timers == 0) {
       return false;
     }
-    myfile << this;
-    myfile.close();
-    return myfile.bad();
+
+    std::ofstream file;
+    file.open(file_name.c_str(), std::ios_base::app);
+    if (file.bad()) {
+      return false;
+    }
+
+    auto inputIntoFile = [&file](std::string &input_line) {
+      input_line.pop_back();
+      input_line += "\n";
+      std::copy(input_line.begin(), input_line.end(), std::ostream_iterator<char>(file));
+      input_line = "";
+    };
+
+    size_t max_num_measurements = 0;
+    std::string input_line = "";
+    for (const auto &timer : measurements) {
+      input_line += timer.first + seperator;
+      const size_t num_measurements = timer.second.size();
+      max_num_measurements = std::max(num_measurements, max_num_measurements);
+    }
+
+    inputIntoFile(input_line);
+
+    for (size_t m = 0; m < max_num_measurements; m++) {
+      for (const auto &timer : measurements) {
+        if (timer.second.size() > m) {
+          const double val = timer.second[m].toDouble<T>();
+          input_line += std::to_string(val) + seperator;
+        } else {
+          input_line += seperator;
+        }
+      }
+      inputIntoFile(input_line);
+    }
+
+    return file.bad();
+  }
+
+  /*!
+   * \brief Writes the histogramms of all measurements from all timers into the given file (appends) for further analysis with Excel or Matlab.
+   * \template a std::chrono duration in which the time (as double values) should be printed.
+   * \param file_name The name of the file to write into. If its a path, the path must exist.
+   * \param seperator A character to seperate the input fields.
+   * \return true if writeing was successfull.
+   */
+  template <class T>
+  bool histogramToFile(const std::string &file_name, char seperator) {
+
+    const size_t num_timers = measurements.size();
+    if (num_timers == 0) {
+      return false;
+    }
+
+    std::vector<Result> results(num_timers);
+    size_t i = 0;
+    for (const auto &timer : measurements) {
+      getResult(timer.first, results[i++]);
+    }
+
+    std::ofstream file;
+    file.open(file_name.c_str(), std::ios_base::app);
+    if (file.bad()) {
+      return false;
+    }
+
+    std::string input_line = "";
+    auto inputIntoFile = [&file, &input_line]() {
+      input_line.pop_back();
+      input_line += "\n";
+      std::copy(input_line.begin(), input_line.end(), std::ostream_iterator<char>(file));
+      input_line = "";
+    };
+
+    size_t max_num_buckets = 0;
+    for (const auto &result : results) {
+      input_line += result.timer_name + " bucket" + seperator +
+                    result.timer_name + " count" + seperator;
+      const size_t num_buckets = result.h.buckets.size();
+      max_num_buckets = std::max(max_num_buckets, num_buckets);
+    }
+    inputIntoFile();
+
+    for (size_t b = 0; b < max_num_buckets; b++) {
+      for (const auto &result : results) {
+        if (result.h.buckets.size() > b) {
+          const Histogram::Bucket &bucket = result.h.buckets[b];
+          const double val = bucket.getBucketCenter().toDouble<T>();
+          input_line += std::to_string(val) + seperator + std::to_string(bucket.num) + seperator;
+        } else {
+          input_line += seperator + seperator;
+        }
+      }
+      inputIntoFile();
+    }
+
+    return file.bad();
   }
 
  private:
@@ -1427,18 +1578,33 @@ class Timer {
   std::map<std::string, std::vector<PreciseTime>> measurements;
 };
 
-
+/*!
+ * \brief A Single timer without statistic support.
+ */
 class SingleTimer {
  public:
+  /*!
+   * \brief Start one Simple Timer. No Statistics will be generated.
+   */
   void start() {
     started = true;
     start_time = precisionClock::now();
   }
 
+  /*!
+   * \brief Reset the Timer.
+   */
   void reset() { started = false; }
 
+  /*!
+   * \brief Return true if start() was called and reset() was not.
+   */
   bool hasStarted() const { return started; }
 
+  /*!
+   * \brief Returns the time since start() was called. Timer continues to run.
+   * \return The passed time in given template format: std::chrono:: time duration
+   */
   template <class T>
   T getPassedTime() const {
     const SingleTimer::precisionClock::time_point stop_time = precisionClock::now();
