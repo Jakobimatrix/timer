@@ -160,14 +160,13 @@ int main() {
   }
   std::cout << timer << "\n";
   
-    constexpr int num_tests = 1000000;
+  constexpr int num_tests = 1000000;
   
   std::uniform_real_distribution<double> distr(-1000000000000000000., 100000000000000000000.);
 
   const std::string timer_std_modf("std::modf");
   const std::string timer_my_mod_f("my::modf");
 
-  double max_error = 0;
   for(int i = 0; i < num_tests; i++){
     const double d = distr(rd);
     timer.start(timer_std_modf);
@@ -196,4 +195,8 @@ int main() {
 ```
 
 ### Output:
+![PreciseTime sample output](https://raw.githubusercontent.com/Jakobimatrix/timer/master/example_output/precise_time_sample_output.png)
 
+![timer example 1](https://raw.githubusercontent.com/Jakobimatrix/timer/master/example_output/timer_example_1.png)
+
+![timer example 2](https://raw.githubusercontent.com/Jakobimatrix/timer/master/example_output/timer_example_2.png)
