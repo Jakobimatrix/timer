@@ -19,7 +19,7 @@ Please use clang-tidy if you want to contribute: [easy installation](https://git
  * Timer: Useing the PreciseTime class to track time.
  * No need to register new timers.
  * As many timers as you like.
- * On demand output of max, min, mean, standard deviation for all timers.
+ * On demand output of max, min, mean, median, standard deviation for all timers.
  * Print Histogram fo measurements into console
  * Write multiple histograms on top of each other for better comparison.
  * Write measurements to file for further investigation in favourite table calculation or MATLAB
@@ -43,6 +43,7 @@ Please use clang-tidy if you want to contribute: [easy installation](https://git
 * If you use CMake to build your project place this repro inside 'path' and use **add_subdirectory(path/
 timer)** and **target_link_libraries(your_lib timer_lib)**
 * Or just include the header
+* To run the tests run `build/build_and_run_tests.sh`
 
 ## Example usage:
 
