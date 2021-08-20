@@ -34,9 +34,11 @@ Please use clang-tidy if you want to contribute: [easy installation](https://git
  - [x] add an example usage
  - [x] have a nice way to print measurements to file
  - [x] compute Frequency Distribution Table
- - [ ] Tests
+ - [x] Tests
  - [ ] A dynamic PreciseTime where the user can specify the needed resolution and the max time span to optimise calculation
- 
+ - [x] Rollover protection
+ - [ ] Optimize: get rid of the internal seconds
+
 ## Build the project (Linux)
 * If you use CMake to build your project place this repro inside 'path' and use **add_subdirectory(path/
 timer)** and **target_link_libraries(your_lib timer_lib)**
@@ -81,16 +83,29 @@ int main() {
   std::cout << "max: " << max_pt << "\n"
             << "min: " << min_pt << "\n";
 
+  using ns = std::chrono::nanoseconds;
+  using us = std::chrono::microseconds;
+  using ms = std::chrono::milliseconds;
+  using s = std::chrono::seconds;
+  using m = std::chrono::minutes;
+  using h = std::chrono::hours;
+
   // construction
-  tool::PreciseTime my_time1(std::chrono::nanoseconds(987654321));
+  tool::PreciseTime my_time1(ns(987654321));
   std::cout << "1. " << my_time1 << "\n";
-  tool::PreciseTime my_time2(std::chrono::milliseconds(42));
+  tool::PreciseTime my_time2(ms(42));
   std::cout << "2. " << my_time2 << "\n";
-  constexpr tool::PreciseTime my_time3 =
-      tool::PreciseTime(std::chrono::nanoseconds(22)) +
-      tool::PreciseTime(std::chrono::microseconds(450)) +
-      tool::PreciseTime(std::chrono::milliseconds(12));
+  constexpr tool::PreciseTime my_time3 = ns(22) + us(450) + ms(12);
   std::cout << "3. " << my_time3 << "\n";
+  
+  constexpr std::array<long, 6> seperated_times = my_time3.getSeperatedTimeComponents();
+  const std::array<std::string, 6> info = {
+      "nanoseconds.",  "microseconds.",
+      "milliseconds.", "seconds.",
+      "minutes.",      "hours."};
+  for(size_t i = 0; i < 6; i++){
+    std::cout << seperated_times[i] << " " << info[i] "\n";
+  }
 
   // calculations: add/substract times
   my_time1 = my_time1 + my_time1;
