@@ -318,5 +318,5 @@ int main() {
 
 ```
 
-![Frame Timer console output](https://raw.githubusercontent.com/Jakobimatrix/timer/master/example_output/FrameTimer_Consolepng)
-![Frame Timer console output](https://raw.githubusercontent.com/Jakobimatrix/timer/master/example_output/precise_time_sample_output.png)
+![Frame Timer console output](https://raw.githubusercontent.com/Jakobimatrix/timer/master/example_output/FrameTimer_Console.png)
+![Frame Timer console output](https://raw.githubusercontent.com/Jakobimatrix/timer/master/example_output/FrameTimer_Graph.png)
