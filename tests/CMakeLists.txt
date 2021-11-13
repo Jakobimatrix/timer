@@ -4,6 +4,8 @@ project("test_timer_lib" VERSION 1.0
              DESCRIPTION "Boost Tests for timer.hpp"
              HOMEPAGE_URL "https://github.com/Jakobimatrix/timer")
 
+         set(CMAKE_VERBOSE_MAKEFILE on)
+
 set(BOOST_INCLUDE_DIRS $boost_installation_prefix/include)
 
 include_directories(${Boost_INCLUDE_DIRS})

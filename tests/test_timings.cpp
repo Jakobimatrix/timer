@@ -7,12 +7,12 @@
 #include <cmath>
 #include <limits>
 #include <numeric>
-#include <timer/timer.hpp>
+#include <timer/collecting_timer.hpp>
+#include <timer/frame_timer.hpp>
+#include <timer/precise_time.hpp>
 
 namespace utf = boost::unit_test;
 namespace tt = boost::test_tools;
-using PreciseTime = tool::PreciseTime;
-using Timer = tool::Timer;
 using ns = std::chrono::nanoseconds;
 using us = std::chrono::microseconds;
 using ms = std::chrono::milliseconds;
@@ -23,7 +23,7 @@ using h = std::chrono::hours;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
 
-void test_for_all_times(const tool::PreciseTime &pt,
+void test_for_all_times(const PreciseTime &pt,
                         const std::array<int64_t, 6> &times, int line) {
   const auto pt_times = pt.getSeperatedTimeComponents();
 
@@ -39,8 +39,9 @@ void test_for_all_times(const tool::PreciseTime &pt,
   }
 }
 
-void test_for_result(const Timer::Result timer_result,
-                     const Timer::Result expected_timer_result, int line) {
+void test_for_result(const CollectingTimer::Result timer_result,
+                     const CollectingTimer::Result expected_timer_result,
+                     int line) {
 
   BOOST_TEST_INFO("LINE: " + std::to_string(line) + " min_measurement");
   BOOST_TEST(timer_result.min_measurement ==
@@ -75,9 +76,9 @@ void test_for_result(const Timer::Result timer_result,
   }
 }
 
-void test_for_Histogram(const Timer::Histogram timer_histogram,
-                        const Timer::Histogram expected_timer_histogram,
-                        int line) {
+void test_for_Histogram(
+    const CollectingTimer::Histogram timer_histogram,
+    const CollectingTimer::Histogram expected_timer_histogram, int line) {
 
   BOOST_TEST_INFO("LINE: " + std::to_string(line) + " bucket_size");
   BOOST_TEST(timer_histogram.bucket_size ==
@@ -216,7 +217,7 @@ BOOST_AUTO_TEST_CASE(test_precise_time_class_calculus) {
   PreciseTime pt_10 = ns(static_cast<int64_t>(value));
   BOOST_TEST(pt_10.toDouble<ns>() == value);
   pt_10 -= us(44);
-  value -= tool::us2ns(44);
+  value -= us2ns(44);
   BOOST_TEST(pt_10.toDouble<ns>() == value);
   pt_10 *= 1007;
   value *= 1007;
@@ -290,7 +291,7 @@ BOOST_AUTO_TEST_CASE(test_precise_time_class_better_than_double) {
   BOOST_TEST(max != max_minus_one_ns);
 
   constexpr double max_d_s = max.toDouble<s>();
-  constexpr double max_d_s_minus_one_ns = max_d_s - tool::ns2s(1);
+  constexpr double max_d_s_minus_one_ns = max_d_s - ns2s(1);
   BOOST_TEST(max_d_s_minus_one_ns == max_minus_one_ns.toDouble<s>());
   BOOST_TEST(max_d_s == max_d_s_minus_one_ns);
 
@@ -305,9 +306,9 @@ BOOST_AUTO_TEST_CASE(test_timer) {
   const std::string timer = "t";
   std::vector<PreciseTime> timer_0_times = {ns(5), ns(1), ns(7), ns(6),
                                             ns(8), ns(4), ns(2), ns(20)};
-  Timer t_0(timer_0_times, timer);
-  Timer::Result r_0;
-  Timer::Result r_0_expected;
+  CollectingTimer t_0(timer_0_times, timer);
+  CollectingTimer::Result r_0;
+  CollectingTimer::Result r_0_expected;
   t_0.getResult(timer, r_0);
   r_0_expected.min_measurement = ns(1);
   r_0_expected.max_measurement = ns(20);
@@ -321,9 +322,9 @@ BOOST_AUTO_TEST_CASE(test_timer) {
 
   test_for_result(r_0, r_0_expected, __LINE__);
 
-  Timer::Result r_1;
+  CollectingTimer::Result r_1;
   r_1.outliner_range = 2.25;
-  Timer::Result r_1_expected;
+  CollectingTimer::Result r_1_expected;
   t_0.getResult(timer, r_1);
   r_1_expected.min_measurement = ns(1);
   r_1_expected.max_measurement = ns(8);
@@ -359,9 +360,9 @@ BOOST_AUTO_TEST_CASE(test_timer) {
 
   BOOST_TEST(ii = 50);
 
-  Timer t_2(timer_2_times, timer);
-  Timer::Result r_2;
-  Timer::Result r_2_expected;
+  CollectingTimer t_2(timer_2_times, timer);
+  CollectingTimer::Result r_2;
+  CollectingTimer::Result r_2_expected;
   t_2.getResult(timer, r_2);
   r_2_expected.min_measurement = ms(1);
   r_2_expected.max_measurement = ms(99);
@@ -405,4 +406,37 @@ BOOST_AUTO_TEST_CASE(test_timer) {
 
   test_for_Histogram(r_2.h, r_2_expected.h, __LINE__);
 }
+
+FrameTimer ft;
+std::string t1("F1");
+std::string t2("F2");
+
+int f1(int i) {
+  const auto t = ft.startScopedTimer(t1);
+  int a = 0;
+  for (int j = i; j > 0; --j) {
+    a += j / i;
+  }
+  return a;
+}
+
+int f2(int i) {
+  const auto t = ft.startScopedTimer(t2);
+  int a = 0;
+  for (int j = i; j > 0; --j) {
+    a += f1(j);
+  }
+  return a;
+}
+
+BOOST_AUTO_TEST_CASE(test_FrameTimer) {
+  std::vector<int> erg;
+  for (int i = 0; i < 1000; ++i) {
+    ft.frameStart<true>();
+    erg.push_back(f2(i));
+  }
+
+  BOOST_TEST(erg[0] == 0);
+}
+
 #pragma clang diagnostic pop
