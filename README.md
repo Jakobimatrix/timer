@@ -38,6 +38,8 @@ Please use clang-tidy if you want to contribute: [easy installation](https://git
  - [ ] A dynamic PreciseTime where the user can specify the needed resolution and the max time span to optimise calculation
  - [x] Rollover protection
  - [ ] Optimize: get rid of the internal seconds
+ - [ ] Per Frame Timer: Akkumulate multiple call/usage of a named timer within one Frame
+ - [ ] Scoped Timer
 
 ## Build the project (Linux)
 * If you use CMake to build your project place this repro inside 'path' and use **add_subdirectory(path/
