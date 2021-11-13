@@ -191,9 +191,9 @@ private:
     const int p2 = std::round(second_longest.second.toDouble<ns>() * f);
     const int p3 = std::round(third_longest.second.toDouble<ns>() * f);
 
-    // max name length is 5 characters. See printf %-5s
+    // max name length is 10 characters. See printf %-10s
     const auto rs = [](std::string &s) {
-      if (s.length() > 5) {
+      if (s.length() > 10) {
         s[6] = '\0'; // Sometimes my genius… It's almost frightening.
       }
       return s.c_str();
@@ -201,14 +201,14 @@ private:
 
     const auto N = (last_frame_record->second)->size();
     if (N == 1) {
-      printf("[%-5s \033[1m%2d%%\033[0m] %s\n", rs(longest.first), p1,
+      printf("[%-10s \033[1m%2d%%\033[0m] %s\n", rs(longest.first), p1,
              last_frame_record->first.getTimeString(2).c_str());
     } else if (N == 2) {
-      printf("[%-5s \033[1m%2d%%\033[0m || %-5s \033[1m%2d%%\033[0m] %s\n",
+      printf("[%-10s \033[1m%2d%%\033[0m || %-10s \033[1m%2d%%\033[0m] %s\n",
              rs(longest.first), p1, rs(second_longest.first), p2,
              last_frame_record->first.getTimeString(2).c_str());
     } else if (N > 2) {
-      printf("[%-5s \033[1m%2d%%\033[0m || %-5s \033[1m%2d%%\033[0m || %-5s "
+      printf("[%-10s \033[1m%2d%%\033[0m || %-10s \033[1m%2d%%\033[0m || %-10s "
              "\033[1m%2d%%\033[0m] %s\n",
              rs(longest.first), p1, rs(second_longest.first), p2,
              rs(third_longest.first), p3,

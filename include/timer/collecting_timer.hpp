@@ -14,6 +14,7 @@
 #define COLLECTING_TIMER_H
 
 #include "precise_time.hpp"
+#include <algorithm>
 #include <fstream>
 #include <iterator>
 #include <map>
@@ -225,11 +226,11 @@ public:
     void streamOutBaseStatistics(std::ostream &os, const Result &r) const {
       os << "###Result of <" << r.timer_name << ">###"
          << "\n"
-         << "E{X}: \t" << r.mean << "\n"
-         << "Median{X}: \t" << r.median << "\n"
-         << "Max{X}: " << r.max_measurement << "\n"
-         << "Min{X}: " << r.min_measurement << "\n"
-         << "D{X}: \t" << r.standard_derivation << "\n"
+         << "E{X}: \t  " << r.mean << "\n"
+         << "Median{X}:" << r.median << "\n"
+         << "Max{X}:   " << r.max_measurement << "\n"
+         << "Min{X}:   " << r.min_measurement << "\n"
+         << "D{X}: \t  " << r.standard_derivation << "\n"
          << "N measurments: \t" << r.number_measurements << "\n"
          << "N outliners.: \t" << r.number_outliners << "\n";
     }
