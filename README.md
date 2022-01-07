@@ -22,6 +22,11 @@ Please use clang-tidy if you want to contribute: [easy installation](https://git
  - [ ] A dynamic PreciseTime where the user can specify the needed resolution and the max time span to optimize calculation
  - [ ] Optimize: get rid of the internal seconds
 
+## Programmer on Windows
+If you want to use this library on windows, and you did #include windows header in your project without ```#define NOMINMAX``` (or use compilerflag -DNOMINMAX)
+chanses are that you polluted your project with the min and max macros from windows. This interferes with my library. Workaround: ```#define WINDOWS_IS_STUPID``` before including this library.
+
+
 ## CollectingTimer class:
  * Record multiple times (e.g. in a loop)  the execution time of e.g. a function.
  * As many (named) timers as you like, held in one instance of the CollectingTimer class.
