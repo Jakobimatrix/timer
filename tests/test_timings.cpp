@@ -23,14 +23,15 @@ using h = std::chrono::hours;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
 
-void test_for_all_times(const PreciseTime &pt,
-                        const std::array<int64_t, 6> &times, int line) {
+void test_for_all_times(const PreciseTime &pt, const std::array<int64_t, 6> &times, int line) {
   const auto pt_times = pt.getSeperatedTimeComponents();
 
-  const std::array<std::string, 6> info = {
-      "Failed on nanoseconds.",  "Failed on microseconds.",
-      "Failed on milliseconds.", "Failed on seconds.",
-      "Failed on minutes.",      "Failed on hours."};
+  const std::array<std::string, 6> info = {"Failed on nanoseconds.",
+                                           "Failed on microseconds.",
+                                           "Failed on milliseconds.",
+                                           "Failed on seconds.",
+                                           "Failed on minutes.",
+                                           "Failed on hours."};
 
   for (size_t i = 0; i < 6; i++) {
     BOOST_TEST_INFO("LINE: " + std::to_string(line) + " " + info[i] +
@@ -44,53 +45,43 @@ void test_for_result(const CollectingTimer::Result timer_result,
                      int line) {
 
   BOOST_TEST_INFO("LINE: " + std::to_string(line) + " min_measurement");
-  BOOST_TEST(timer_result.min_measurement ==
-             expected_timer_result.min_measurement);
+  BOOST_TEST(timer_result.min_measurement == expected_timer_result.min_measurement);
   BOOST_TEST_INFO("LINE: " + std::to_string(line) + " max_measurement");
-  BOOST_TEST(timer_result.max_measurement ==
-             expected_timer_result.max_measurement);
+  BOOST_TEST(timer_result.max_measurement == expected_timer_result.max_measurement);
   BOOST_TEST_INFO("LINE: " + std::to_string(line) + " mean");
   BOOST_TEST(timer_result.mean == expected_timer_result.mean);
   BOOST_TEST_INFO("LINE: " + std::to_string(line) + " median");
   BOOST_TEST(timer_result.median == expected_timer_result.median);
   BOOST_TEST_INFO("LINE: " + std::to_string(line) + " standard_derivation");
-  BOOST_TEST(timer_result.standard_derivation ==
-             expected_timer_result.standard_derivation);
+  BOOST_TEST(timer_result.standard_derivation == expected_timer_result.standard_derivation);
   BOOST_TEST_INFO("LINE: " + std::to_string(line) + " number_measurements");
-  BOOST_TEST(timer_result.number_measurements ==
-             expected_timer_result.number_measurements);
+  BOOST_TEST(timer_result.number_measurements == expected_timer_result.number_measurements);
   BOOST_TEST_INFO("LINE: " + std::to_string(line) + " number_outliners");
-  BOOST_TEST(timer_result.number_outliners ==
-             expected_timer_result.number_outliners);
+  BOOST_TEST(timer_result.number_outliners == expected_timer_result.number_outliners);
   BOOST_TEST_INFO("LINE: " + std::to_string(line) + " is_outliner");
   BOOST_TEST(timer_result.is_outliner.size() ==
              expected_timer_result.is_outliner.size());
-  const size_t num_outliners =
-      std::min(timer_result.is_outliner.size(),
-               expected_timer_result.is_outliner.size());
+  const size_t num_outliners = std::min(
+      timer_result.is_outliner.size(), expected_timer_result.is_outliner.size());
   for (size_t i = 0; i < num_outliners; i++) {
     BOOST_TEST_INFO("LINE: " + std::to_string(line) + " outliner Array index " +
                     std::to_string(i));
-    BOOST_TEST(timer_result.is_outliner[i] ==
-               expected_timer_result.is_outliner[i]);
+    BOOST_TEST(timer_result.is_outliner[i] == expected_timer_result.is_outliner[i]);
   }
 }
 
-void test_for_Histogram(
-    const CollectingTimer::Histogram timer_histogram,
-    const CollectingTimer::Histogram expected_timer_histogram, int line) {
+void test_for_Histogram(const CollectingTimer::Histogram timer_histogram,
+                        const CollectingTimer::Histogram expected_timer_histogram,
+                        int line) {
 
   BOOST_TEST_INFO("LINE: " + std::to_string(line) + " bucket_size");
-  BOOST_TEST(timer_histogram.bucket_size ==
-             expected_timer_histogram.bucket_size);
+  BOOST_TEST(timer_histogram.bucket_size == expected_timer_histogram.bucket_size);
 
   BOOST_TEST_INFO("LINE: " + std::to_string(line) + " max_num_in_bucket");
-  BOOST_TEST(timer_histogram.max_num_in_bucket ==
-             expected_timer_histogram.max_num_in_bucket);
+  BOOST_TEST(timer_histogram.max_num_in_bucket == expected_timer_histogram.max_num_in_bucket);
 
   BOOST_TEST_INFO("LINE: " + std::to_string(line) + " buckets size");
-  BOOST_TEST(timer_histogram.buckets.size() ==
-             expected_timer_histogram.buckets.size());
+  BOOST_TEST(timer_histogram.buckets.size() == expected_timer_histogram.buckets.size());
 
   const size_t num_buckets = std::min(timer_histogram.buckets.size(),
                                       expected_timer_histogram.buckets.size());
@@ -114,8 +105,7 @@ BOOST_AUTO_TEST_CASE(test_precise_time_class_min_max_rollover) {
   // https://stackoverflow.com/questions/64578042/cant-assign-64-bit-number-to-64-bit-min-in-c
   // hours_min == -9223372036854775808l);
   constexpr std::array<int64_t, 6> expected_min_times = {
-      -999l, -999l, -999l,
-      -59l,  -59l,  std::numeric_limits<std::int64_t>::min()};
+      -999l, -999l, -999l, -59l, -59l, std::numeric_limits<std::int64_t>::min()};
   test_for_all_times(max_pt, expected_max_times, __LINE__);
   test_for_all_times(min_pt, expected_min_times, __LINE__);
 
@@ -166,23 +156,19 @@ BOOST_AUTO_TEST_CASE(test_precise_time_class_min_max_rollover) {
 BOOST_AUTO_TEST_CASE(test_precise_time_class_construct) {
 
   constexpr PreciseTime pt_0 = ns(98788987654321);
-  constexpr std::array<int64_t, 6> expected_times_0 = {321l, 654l, 987l,
-                                                       28l,  26l,  27};
+  constexpr std::array<int64_t, 6> expected_times_0 = {321l, 654l, 987l, 28l, 26l, 27};
   test_for_all_times(pt_0, expected_times_0, __LINE__);
 
   constexpr PreciseTime pt_1 = ns(-98788987654321);
-  constexpr std::array<int64_t, 6> expected_times_1 = {-321l, -654l, -987l,
-                                                       -28l,  -26l,  -27};
+  constexpr std::array<int64_t, 6> expected_times_1 = {
+      -321l, -654l, -987l, -28l, -26l, -27};
   test_for_all_times(pt_1, expected_times_1, __LINE__);
 
-  constexpr PreciseTime pt_2 =
-      ns(321) + us(654) + ms(987) + s(28) + m(26) + h(27);
+  constexpr PreciseTime pt_2 = ns(321) + us(654) + ms(987) + s(28) + m(26) + h(27);
   test_for_all_times(pt_2, expected_times_0, __LINE__);
 
-  constexpr PreciseTime pt_3 =
-      ns(321) - us(654) + ms(987) - s(28) + m(26) - h(27);
-  constexpr std::array<int64_t, 6> expected_times_3 = {-679l, -653l, -13l,
-                                                       -27l,  -34l,  -26};
+  constexpr PreciseTime pt_3 = ns(321) - us(654) + ms(987) - s(28) + m(26) - h(27);
+  constexpr std::array<int64_t, 6> expected_times_3 = {-679l, -653l, -13l, -27l, -34l, -26};
   test_for_all_times(pt_3, expected_times_3, __LINE__);
 }
 
@@ -278,10 +264,29 @@ BOOST_AUTO_TEST_CASE(test_precise_time_class_calculus) {
   BOOST_TEST(pt_19 == pt_19_exp);
 
   constexpr PreciseTime pt_20 = PreciseTime(h(-3)) + PreciseTime(ns(1));
-  constexpr PreciseTime pt_20_exp = PreciseTime(h(-2)) -
-                                    PreciseTime(s(3600 - 1)) -
-                                    PreciseTime(ns(999999999));
+  constexpr PreciseTime pt_20_exp =
+      PreciseTime(h(-2)) - PreciseTime(s(3600 - 1)) - PreciseTime(ns(999999999));
   BOOST_TEST(pt_20 == pt_20_exp);
+
+  constexpr PreciseTime pt_21_exp =
+      PreciseTime(h(1)) + PreciseTime(s(2)) + PreciseTime(ns(3));
+
+  constexpr PreciseTime pt_22_exp =
+      PreciseTime(h(1)) + PreciseTime(s(2)) + PreciseTime(ns(4));
+
+  constexpr PreciseTime pt_23_exp =
+      PreciseTime(h(1)) + PreciseTime(s(3)) + PreciseTime(ns(3));
+
+  constexpr PreciseTime pt_24_exp =
+      PreciseTime(h(2)) + PreciseTime(s(2)) + PreciseTime(ns(3));
+
+  BOOST_TEST(pt_21_exp < pt_22_exp);
+  BOOST_TEST(pt_21_exp < pt_23_exp);
+  BOOST_TEST(pt_21_exp < pt_24_exp);
+
+  BOOST_TEST(pt_22_exp > pt_21_exp);
+  BOOST_TEST(pt_23_exp > pt_21_exp);
+  BOOST_TEST(pt_24_exp > pt_21_exp);
 }
 
 BOOST_AUTO_TEST_CASE(test_precise_time_class_better_than_double) {
@@ -304,8 +309,8 @@ BOOST_AUTO_TEST_CASE(test_precise_time_class_better_than_double) {
 BOOST_AUTO_TEST_CASE(test_timer) {
 
   const std::string timer = "t";
-  std::vector<PreciseTime> timer_0_times = {ns(5), ns(1), ns(7), ns(6),
-                                            ns(8), ns(4), ns(2), ns(20)};
+  std::vector<PreciseTime> timer_0_times = {
+      ns(5), ns(1), ns(7), ns(6), ns(8), ns(4), ns(2), ns(20)};
   CollectingTimer t_0(timer_0_times, timer);
   CollectingTimer::Result r_0;
   CollectingTimer::Result r_0_expected;
@@ -317,8 +322,7 @@ BOOST_AUTO_TEST_CASE(test_timer) {
   r_0_expected.standard_derivation = ns(5);
   r_0_expected.number_measurements = 8;
   r_0_expected.number_outliners = 0;
-  r_0_expected.is_outliner = {false, false, false, false,
-                              false, false, false, false};
+  r_0_expected.is_outliner = {false, false, false, false, false, false, false, false};
 
   test_for_result(r_0, r_0_expected, __LINE__);
 
@@ -333,8 +337,7 @@ BOOST_AUTO_TEST_CASE(test_timer) {
   r_1_expected.standard_derivation = ns(2);
   r_1_expected.number_measurements = 8;
   r_1_expected.number_outliners = 1;
-  r_1_expected.is_outliner = {false, false, false, false,
-                              false, false, false, true};
+  r_1_expected.is_outliner = {false, false, false, false, false, false, false, true};
   test_for_result(r_1, r_1_expected, __LINE__);
 
   // construct a triangle
@@ -397,8 +400,7 @@ BOOST_AUTO_TEST_CASE(test_timer) {
   // ...
 
   constexpr std::array<int, 19> num_in_bucket = {
-      21,  45,  70,  95,  147, 150, 175, 200, 273, 243,
-      220, 195, 201, 140, 115, 90,  75,  35,  10};
+      21, 45, 70, 95, 147, 150, 175, 200, 273, 243, 220, 195, 201, 140, 115, 90, 75, 35, 10};
 
   for (size_t i = 0; i < 19; i++) {
     r_2_expected.h.buckets[i].num = num_in_bucket[i];
