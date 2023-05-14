@@ -1008,6 +1008,10 @@ class PreciseTime {
 
   constexpr bool operator!=(const PreciseTime &pt) const noexcept {
     return !(*this == pt);
+    return (hours == pt.hours && seconds == pt.seconds &&
+            (nano_seconds != pt.nano_seconds) && (nano_seconds < pt.nano_seconds)) ||
+           (hours == pt.hours && seconds != pt.seconds && seconds < pt.seconds) ||
+           ((hours != pt.hours) && (hours < pt.hours));
   }
 
   constexpr bool operator<(const PreciseTime &pt) const noexcept {
@@ -1088,6 +1092,12 @@ class PreciseTime {
     return os;
   }
 
+  std::string toString() const noexcept {
+    std::stringstream ss;
+    ss << *this;
+    return ss.str();
+  }
+
   constexpr PreciseTime getMayorTime() const noexcept {
     if (get<std::chrono::hours>().count() > 0) {
       return PreciseTime(get<std::chrono::hours>());
@@ -1149,27 +1159,21 @@ class PreciseTime {
     if (get<std::chrono::hours>().count() > 0) {
       time_d = ns2h(time_d);
       unit = "h";
-    }
-    if (get<std::chrono::minutes>().count() > 0) {
+    } else if (get<std::chrono::minutes>().count() > 0) {
       time_d = ns2m(time_d);
       unit = "m";
-    }
-    if (get<std::chrono::seconds>().count() > 0) {
+    } else if (get<std::chrono::seconds>().count() > 0) {
       time_d = ns2s(time_d);
       unit = "s";
-    }
-    if (get<std::chrono::milliseconds>().count() > 0) {
+    } else if (get<std::chrono::milliseconds>().count() > 0) {
       time_d = ns2ms(time_d);
       unit = "ms";
-    }
-    if (get<std::chrono::microseconds>().count() > 0) {
+    } else if (get<std::chrono::microseconds>().count() > 0) {
       time_d = ns2us(time_d);
       unit = "us";
     }
 
-    const int power = static_cast<int>(log10(std::abs(time_d)));
-    const int num_decimal_places = std::max(0, precision - power);
-    stream << std::fixed << std::setprecision(num_decimal_places) << time_d << unit;
+    stream << std::fixed << std::setprecision(precision) << time_d << unit;
 
     return stream.str();
   }

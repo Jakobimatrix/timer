@@ -293,6 +293,95 @@ BOOST_AUTO_TEST_CASE(test_precise_time_class_calculus) {
   constexpr PreciseTime pt_26_exp = std::chrono::microseconds(1);
 
   BOOST_TEST(pt_25_exp > pt_26_exp);
+  BOOST_TEST(pt_26_exp < pt_25_exp);
+
+  constexpr PreciseTime pt_27_exp = std::chrono::nanoseconds(11);
+  constexpr PreciseTime pt_28_exp = std::chrono::milliseconds(1);
+
+  BOOST_TEST(pt_28_exp > pt_27_exp);
+  BOOST_TEST(pt_27_exp < pt_28_exp);
+
+  constexpr PreciseTime pt_29_exp = std::chrono::nanoseconds(1);
+  constexpr PreciseTime pt_30_exp = std::chrono::seconds(1);
+
+  BOOST_TEST(pt_30_exp > pt_29_exp);
+  BOOST_TEST(pt_29_exp < pt_30_exp);
+}
+
+BOOST_AUTO_TEST_CASE(test_precise_time_class_test_to_string) {
+  constexpr PreciseTime ns = std::chrono::nanoseconds(1);
+  constexpr PreciseTime us = std::chrono::microseconds(1);
+  constexpr PreciseTime ms = std::chrono::milliseconds(1);
+  constexpr PreciseTime s = std::chrono::seconds(1);
+  constexpr PreciseTime m = std::chrono::minutes(1);
+  constexpr PreciseTime h = std::chrono::hours(1);
+
+  BOOST_TEST(ns.getTimeString(0).c_str() == "1ns");
+  BOOST_TEST(us.getTimeString(1).c_str() == "1.0us");
+  BOOST_TEST(ms.getTimeString(2).c_str() == "1.00ms");
+  BOOST_TEST(s.getTimeString(3).c_str() == "1.000s");
+  BOOST_TEST(m.getTimeString(4).c_str() == "1.0000m");
+  BOOST_TEST(h.getTimeString(5).c_str() == "1.00000h");
+
+  BOOST_TEST(ns.getMayorTimeString() == "1ns");
+  BOOST_TEST(us.getMayorTimeString() == "1us");
+  BOOST_TEST(ms.getMayorTimeString() == "1ms");
+  BOOST_TEST(s.getMayorTimeString() == "1s");
+  BOOST_TEST(m.getMayorTimeString() == "1m");
+  BOOST_TEST(h.getMayorTimeString() == "1h");
+
+  BOOST_TEST(ns.toString() ==
+             "{h: [0]   m: [0]   s: [0]   ms: [0]   us: [0]   ns: [1]}^1");
+  BOOST_TEST(us.toString() ==
+             "{h: [0]   m: [0]   s: [0]   ms: [0]   us: [1]   ns: [0]}^1");
+  BOOST_TEST(ms.toString() ==
+             "{h: [0]   m: [0]   s: [0]   ms: [1]   us: [0]   ns: [0]}^1");
+  BOOST_TEST(s.toString() ==
+             "{h: [0]   m: [0]   s: [1]   ms: [0]   us: [0]   ns: [0]}^1");
+  BOOST_TEST(m.toString() ==
+             "{h: [0]   m: [1]   s: [0]   ms: [0]   us: [0]   ns: [0]}^1");
+  BOOST_TEST(h.toString() ==
+             "{h: [1]   m: [0]   s: [0]   ms: [0]   us: [0]   ns: [0]}^1");
+
+  constexpr PreciseTime usns = us + ns;
+  constexpr PreciseTime msusns = ms + usns;
+  constexpr PreciseTime smsusns = s + msusns;
+  constexpr PreciseTime msmsusns = m + smsusns;
+  constexpr PreciseTime hmsmsusns = h + msmsusns;
+
+  BOOST_TEST(usns.getTimeString(4).c_str() == "1.0010us");
+  BOOST_TEST(msusns.getTimeString(4).c_str() == "1.0010ms");
+  BOOST_TEST(smsusns.getTimeString(4).c_str() == "1.0010s");
+  BOOST_TEST(msmsusns.getTimeString(4).c_str() == "1.0167m");
+  BOOST_TEST(hmsmsusns.getTimeString(4).c_str() == "1.0169h");
+
+  BOOST_TEST(usns.getMayorTimeString().c_str() == "1us");
+  BOOST_TEST(msusns.getMayorTimeString().c_str() == "1ms");
+  BOOST_TEST(smsusns.getMayorTimeString().c_str() == "1s");
+  BOOST_TEST(msmsusns.getMayorTimeString().c_str() == "1m");
+  BOOST_TEST(hmsmsusns.getMayorTimeString().c_str() == "1h");
+
+  BOOST_TEST(usns.toString() ==
+             "{h: [0]   m: [0]   s: [0]   ms: [0]   us: [1]   ns: [1]}^1");
+  BOOST_TEST(msusns.toString() ==
+             "{h: [0]   m: [0]   s: [0]   ms: [1]   us: [1]   ns: [1]}^1");
+  BOOST_TEST(smsusns.toString() ==
+             "{h: [0]   m: [0]   s: [1]   ms: [1]   us: [1]   ns: [1]}^1");
+  BOOST_TEST(msmsusns.toString() ==
+             "{h: [0]   m: [1]   s: [1]   ms: [1]   us: [1]   ns: [1]}^1");
+  BOOST_TEST(hmsmsusns.toString() ==
+             "{h: [1]   m: [1]   s: [1]   ms: [1]   us: [1]   ns: [1]}^1");
+
+  constexpr PreciseTime ss = s * s;
+  constexpr PreciseTime sss = ss * s;
+  constexpr PreciseTime ssss = sss * s;
+
+  BOOST_TEST(ss.toString() ==
+             "{h: [0]   m: [0]   s: [1]   ms: [0]   us: [0]   ns: [0]}^2");
+  BOOST_TEST(sss.toString() ==
+             "{h: [0]   m: [0]   s: [1]   ms: [0]   us: [0]   ns: [0]}^3");
+  BOOST_TEST(ssss.toString() ==
+             "{h: [0]   m: [0]   s: [1]   ms: [0]   us: [0]   ns: [0]}^4");
 }
 
 BOOST_AUTO_TEST_CASE(test_precise_time_class_better_than_double) {
