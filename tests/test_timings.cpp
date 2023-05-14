@@ -287,6 +287,12 @@ BOOST_AUTO_TEST_CASE(test_precise_time_class_calculus) {
   BOOST_TEST(pt_22_exp > pt_21_exp);
   BOOST_TEST(pt_23_exp > pt_21_exp);
   BOOST_TEST(pt_24_exp > pt_21_exp);
+
+
+  constexpr PreciseTime pt_25_exp = std::chrono::nanoseconds(5000);
+  constexpr PreciseTime pt_26_exp = std::chrono::microseconds(1);
+
+  BOOST_TEST(pt_25_exp > pt_26_exp);
 }
 
 BOOST_AUTO_TEST_CASE(test_precise_time_class_better_than_double) {
