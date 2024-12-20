@@ -32,6 +32,16 @@ public:
    * \brief Must be called on each cycle start to reset the akkumulated timers.
    */
   template <bool debug_to_console = false> void frameStart() {
+    frameStop();
+    frame_start = PreciseTime::PrecisionClock::now();
+    frame_stopped = false;
+  }
+
+  template <bool debug_to_console = false> void frameStop() {
+    if(frame_stopped){
+      return;
+    }
+    frame_stopped = true;
     const auto frame_end = PreciseTime::PrecisionClock::now();
     if (!current_timers->empty()) {
       const std::chrono::nanoseconds duration =
@@ -44,7 +54,6 @@ public:
         debug2Console();
       }
     }
-    frame_start = PreciseTime::PrecisionClock::now();
   }
 
   /*!
@@ -226,6 +235,7 @@ private:
   std::shared_ptr<TimerMap> current_timers = std::make_shared<TimerMap>();
   std::list<std::pair<PreciseTime, std::shared_ptr<TimerMap>>> frame_records;
   time_point frame_start;
+  bool frame_stopped = false;
   ScopedTimer::reportBack report_back;
 };
 

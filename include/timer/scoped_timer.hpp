@@ -48,18 +48,27 @@ public:
     })
   {
   }
-  
-  ~ScopedTimer() {
+
+  void stop(){
+    if(stopped){
+      return;
+    }
+    stopped = true;
     const auto stop = PreciseTime::PrecisionClock::now();
     const auto duration =
         std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
     report_back(name, start, duration);
+  }
+  
+  ~ScopedTimer() {
+    stop();
   }
 
 private:
   const std::string name;
   const PreciseTime::PrecisionClock::time_point start;
   const reportBack report_back;
+  bool stopped = false;
 };
 
 #endif
