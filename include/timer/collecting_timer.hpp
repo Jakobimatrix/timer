@@ -208,7 +208,8 @@ public:
       // [213.0ns - 214.0ns] |######
       // clang-format on
       constexpr size_t BucketSizeInfo = 22;
-      return std::max(50ul, num_char_terminal_width - BucketSizeInfo);
+      constexpr size_t MAX_LENGT = 50;
+      return std::max(MAX_LENGT, num_char_terminal_width - BucketSizeInfo);
     }
 
     /*!
