@@ -17,6 +17,7 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <array>
 
 constexpr double fastModF(double x, double &full) noexcept {
   full = static_cast<double>(static_cast<int64_t>(x));
