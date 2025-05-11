@@ -1,10 +1,10 @@
 /*
  * \file: precise_time.hpp
  * \brief: Implements the PreciseTime class useing std::chrono.
- * \date: 17.07.2021
+ * \date: 11.05.2025
  * \author: Jakob Wandel
  * \source: https://github.com/Jakobimatrix/timer
- * \version: 2.0
+ * \version: 3.0
  */
 
 #ifndef PRECISE_TIME_H
@@ -19,116 +19,252 @@
 #include <sstream>
 #include <array>
 
+/**
+ * @brief Computes the fractional and integral parts of a floating-point number.
+ * @param x The input floating-point number.
+ * @param full Reference to store the integral part of the number.
+ * @return The fractional part of the number.
+ */
 constexpr double fastModF(double x, double &full) noexcept {
   full = static_cast<double>(static_cast<int64_t>(x));
   return x - full;
 }
 
-/*
- * \brief x2y(t x)
- * \param x time in x
- * \return time in y
+
+
+/**
+ * @brief Converts microseconds to nanoseconds.
+ * @tparam t The type of the input value.
+ * @param micro Time in microseconds.
+ * @return Time in nanoseconds.
  */
 template <class t>
-constexpr auto mu2ns(t micro) {
-  return static_cast<t>(micro * 1000.);
+constexpr auto us2ns(t micro) {
+  constexpr t MICRO_TO_NANO = static_cast<t>(1000);
+  return micro * MICRO_TO_NANO;
 }
 
+/**
+ * @brief Converts milliseconds to nanoseconds.
+ * @tparam t The type of the input value.
+ * @param milli Time in milliseconds.
+ * @return Time in nanoseconds.
+ */
 template <class t>
 constexpr auto ms2ns(t milli) {
-  return static_cast<t>(milli * 1000000.);
+  constexpr t MILLI_TO_NANO = static_cast<t>(1000000);
+  return milli * MILLI_TO_NANO;
 }
 
+/**
+ * @brief Converts seconds to nanoseconds.
+ * @tparam t The type of the input value.
+ * @param sec Time in seconds.
+ * @return Time in nanoseconds.
+ */
 template <class t>
 constexpr auto s2ns(t sec) {
-  return static_cast<t>(sec * 1000000000.);
+  constexpr t SEC_TO_NANO = static_cast<t>(1000000000);
+  return sec * SEC_TO_NANO;
 }
 
+/**
+ * @brief Converts nanoseconds to microseconds.
+ * @tparam t The type of the input value.
+ * @param ns Time in nanoseconds.
+ * @return Time in microseconds.
+ */
 template <class t>
 constexpr auto ns2us(t ns) {
-  return static_cast<t>(ns / 1000.);
+  constexpr t NANO_TO_MICRO = static_cast<t>(1000);
+  return ns / NANO_TO_MICRO;
 }
 
-template <class t>
-constexpr auto us2ns(t us) {
-  return static_cast<t>(us * 1000.);
-}
-
+/**
+ * @brief Converts nanoseconds to milliseconds.
+ * @tparam t The type of the input value.
+ * @param ns Time in nanoseconds.
+ * @return Time in milliseconds.
+ */
 template <class t>
 constexpr auto ns2ms(t ns) {
-  return static_cast<t>(ns / 1000000.);
+  constexpr t NANO_TO_MILLI = static_cast<t>(1000000);
+  return ns / NANO_TO_MILLI;
 }
 
+/**
+ * @brief Converts nanoseconds to seconds.
+ * @tparam t The type of the input value.
+ * @param ns Time in nanoseconds.
+ * @return Time in seconds.
+ */
 template <class t>
 constexpr auto ns2s(t ns) {
-  return static_cast<t>(ns / 1000000000.);
+  constexpr t NANO_TO_SEC = static_cast<t>(1000000000);
+  return ns / NANO_TO_SEC;
 }
 
+/**
+ * @brief Converts nanoseconds to minutes.
+ * @tparam t The type of the input value.
+ * @param ns Time in nanoseconds.
+ * @return Time in minutes.
+ */
 template <class t>
 constexpr auto ns2m(t ns) {
-  return static_cast<t>(ns / (1000000000. * 60.));
+  constexpr t NANO_TO_MIN = static_cast<t>(1000000000L * 60L);
+  return ns / NANO_TO_MIN;
 }
 
+/**
+ * @brief Converts nanoseconds to hours.
+ * @tparam t The type of the input value.
+ * @param ns Time in nanoseconds.
+ * @return Time in hours.
+ */
 template <class t>
 constexpr auto ns2h(t ns) {
-  return static_cast<t>(ns / (1000000000. * 3600.));
+  constexpr t NANO_TO_HOUR = static_cast<t>(1000000000L * 3600L);
+  return ns / NANO_TO_HOUR;
 }
 
+/**
+ * @brief Converts minutes to seconds.
+ * @tparam t The type of the input value.
+ * @param m Time in minutes.
+ * @return Time in seconds.
+ */
 template <class t>
 constexpr auto m2s(t m) {
-  return static_cast<t>(m * 60.);
+  constexpr t MIN_TO_SEC = static_cast<t>(60);
+  return m * MIN_TO_SEC;
 }
 
+/**
+ * @brief Converts hours to seconds.
+ * @tparam t The type of the input value.
+ * @param h Time in hours.
+ * @return Time in seconds.
+ */
 template <class t>
 constexpr auto h2s(t h) {
-  return static_cast<t>(h * 3600.);
+  constexpr t HOUR_TO_SEC = static_cast<t>(3600);
+  return h * HOUR_TO_SEC;
 }
 
+/**
+ * @brief Converts hours to minutes.
+ * @tparam t The type of the input value.
+ * @param h Time in hours.
+ * @return Time in minutes.
+ */
 template <class t>
 constexpr auto h2m(t h) {
-  return static_cast<t>(h * 60.);
+  constexpr t HOUR_TO_MIN = static_cast<t>(60);
+  return h * HOUR_TO_MIN;
 }
 
+/**
+ * @brief Converts hours to milliseconds.
+ * @tparam t The type of the input value.
+ * @param h Time in hours.
+ * @return Time in milliseconds.
+ */
 template <class t>
 constexpr auto h2ms(t h) {
-  return static_cast<t>(h * 3600. * 1000.);
+  constexpr t HOUR_TO_MILLI = static_cast<t>(3600 * 1000);
+  return h * HOUR_TO_MILLI;
 }
 
+/**
+ * @brief Converts hours to microseconds.
+ * @tparam t The type of the input value.
+ * @param h Time in hours.
+ * @return Time in microseconds.
+ */
 template <class t>
 constexpr auto h2us(t h) {
-  return static_cast<t>(h * 3600. * 1000000.);
+  constexpr t HOUR_TO_MICRO = static_cast<t>(3600L * 1000000L);
+  return h * HOUR_TO_MICRO;
 }
 
+/**
+ * @brief Converts hours to nanoseconds.
+ * @tparam t The type of the input value.
+ * @param h Time in hours.
+ * @return Time in nanoseconds.
+ */
 template <class t>
 constexpr auto h2ns(t h) {
-  return static_cast<t>(h * 3600. * 1000000000.);
+  constexpr t HOUR_TO_NANO = static_cast<t>(3600L * 1000000000L);
+  return h * HOUR_TO_NANO;
 }
 
+/**
+ * @brief Converts seconds to microseconds.
+ * @tparam t The type of the input value.
+ * @param s Time in seconds.
+ * @return Time in microseconds.
+ */
 template <class t>
 constexpr auto s2us(t s) {
-  return static_cast<t>(s * 1000000.);
+  constexpr t SEC_TO_MICRO = static_cast<t>(1000000);
+  return s * SEC_TO_MICRO;
 }
 
+/**
+ * @brief Converts seconds to milliseconds.
+ * @tparam t The type of the input value.
+ * @param s Time in seconds.
+ * @return Time in milliseconds.
+ */
 template <class t>
 constexpr auto s2ms(t s) {
-  return static_cast<t>(s * 1000.);
+  constexpr t SEC_TO_MILLI = static_cast<t>(1000);
+  return s * SEC_TO_MILLI;
 }
 
+/**
+ * @brief Converts seconds to minutes.
+ * @tparam t The type of the input value.
+ * @param s Time in seconds.
+ * @return Time in minutes.
+ */
 template <class t>
 constexpr auto s2m(t s) {
-  return static_cast<t>(s / 60.);
+  constexpr t SEC_TO_MIN = static_cast<t>(60);
+  return s / SEC_TO_MIN;
 }
 
+/**
+ * @brief Converts seconds to hours.
+ * @tparam t The type of the input value.
+ * @param s Time in seconds.
+ * @return Time in hours.
+ */
 template <class t>
 constexpr auto s2h(t s) {
-  return static_cast<t>(s / 3600.);
+  constexpr t SEC_TO_HOUR = static_cast<t>(3600);
+  return s / SEC_TO_HOUR;
 }
 
+/**
+ * @brief Converts seconds to hours (floored).
+ * @tparam t The type of the input value.
+ * @param s Time in seconds.
+ * @return Time in hours (floored).
+ */
 template <class t>
 constexpr auto s2hf(t s) {
-  return static_cast<t>(std::floor(s / 3600.));
+  constexpr t SEC_TO_HOUR = static_cast<t>(3600);
+  return std::floor(s / SEC_TO_HOUR);
 }
 
+/**
+ * @brief Converts a time unit to its string representation.
+ * @tparam T The chrono duration type (e.g., nanoseconds, microseconds).
+ * @return The string representation of the time unit.
+ */
 template <class T>
 constexpr auto timeunit2String() {
   if constexpr (std::is_same<T, std::chrono::nanoseconds>::value) {
@@ -153,37 +289,61 @@ class PreciseTime {
   typedef std::conditional<std::chrono::high_resolution_clock::is_steady,
                            std::chrono::high_resolution_clock,
                            std::chrono::steady_clock>::type PrecisionClock;
-  /// <Construction Area>
-  ///
-  ///
+  /**
+   * @brief Default constructor for PreciseTime.
+   */
   constexpr PreciseTime() = default;
 
-  constexpr PreciseTime(const std::chrono::nanoseconds &nano_seconds) noexcept
-      : nano_seconds(nano_seconds) {
+  /**
+   * @brief Constructs a PreciseTime object from nanoseconds.
+   * @param ns Time in nanoseconds.
+   */
+  constexpr PreciseTime(const std::chrono::nanoseconds &ns) noexcept
+      : nano_seconds(ns) {
     sanitize();
   }
 
-  constexpr PreciseTime(const std::chrono::microseconds &micro_seconds) noexcept
-      : nano_seconds(std::chrono::nanoseconds(mu2ns(micro_seconds.count()))) {
+  /**
+   * @brief Constructs a PreciseTime object from microseconds.
+   * @param us Time in microseconds.
+   */
+  constexpr PreciseTime(const std::chrono::microseconds &us) noexcept
+      : nano_seconds(std::chrono::nanoseconds(us2ns(us.count()))) {
     sanitize();
   }
 
-  constexpr PreciseTime(const std::chrono::milliseconds &milli_seconds) noexcept
-      : nano_seconds(std::chrono::nanoseconds(ms2ns(milli_seconds.count()))) {
+  /**
+   * @brief Constructs a PreciseTime object from milliseconds.
+   * @param ms Time in milliseconds.
+   */
+  constexpr PreciseTime(const std::chrono::milliseconds &ms) noexcept
+      : nano_seconds(std::chrono::nanoseconds(ms2ns(ms.count()))) {
     sanitize();
   }
 
-  constexpr PreciseTime(const std::chrono::seconds &seconds) noexcept
-      : seconds(seconds) {
+  /**
+   * @brief Constructs a PreciseTime object from seconds.
+   * @param s Time in seconds.
+   */
+  constexpr PreciseTime(const std::chrono::seconds &s) noexcept
+      : seconds(s) {
     sanitize();
   }
 
-  constexpr PreciseTime(const std::chrono::minutes &minutes) noexcept
-      : seconds(std::chrono::seconds(m2s(minutes.count()))) {
+  /**
+   * @brief Constructs a PreciseTime object from minutes.
+   * @param m Time in minutes.
+   */
+  constexpr PreciseTime(const std::chrono::minutes &m) noexcept
+      : seconds(std::chrono::seconds(m2s(m.count()))) {
     sanitize();
   }
 
-  constexpr PreciseTime(const std::chrono::hours &hours) : hours(hours) {}
+  /**
+   * @brief Constructs a PreciseTime object from hours.
+   * @param h Time in hours.
+   */
+  constexpr PreciseTime(const std::chrono::hours &h) : hours(h) {}
 
   /*
    * Initialization with double values. But I dont want to make PreciseTime
@@ -247,13 +407,32 @@ class PreciseTime {
   }
   */
 
-  constexpr PreciseTime(const PreciseTime &oth) noexcept = default;
-  constexpr PreciseTime(PreciseTime &&oth) noexcept = default;
+  constexpr PreciseTime(const PreciseTime &other) noexcept = default;
+
+  /**
+   * @brief Move constructor for PreciseTime.
+   * @param other The other PreciseTime object to move.
+   */
+  constexpr PreciseTime(PreciseTime &&other) noexcept = default;
+
+  /**
+   * @brief Copy assignment operator for PreciseTime.
+   * @param other The other PreciseTime object to copy.
+   * @return Reference to the current object.
+   */
   PreciseTime &operator=(const PreciseTime &other) noexcept = default;
+
+  /**
+   * @brief Move assignment operator for PreciseTime.
+   * @param other The other PreciseTime object to move.
+   * @return Reference to the current object.
+   */
   PreciseTime &operator=(PreciseTime &&other) noexcept = default;
 
-  /*!
-   * \brief max Returns the greatest time the PreciseTime class can hold
+  /**
+   * @brief Returns the greatest time the PreciseTime class can hold.
+   * @tparam EXPO The exponent of the time unit.
+   * @return The maximum PreciseTime object.
    */
   template <int EXPO = 1>
   static constexpr PreciseTime max() noexcept {
@@ -264,8 +443,10 @@ class PreciseTime {
     return ps;
   }
 
-  /*!
-   * \brief min Returns the smallest time the PreciseTime class can hold
+  /**
+   * @brief Returns the smallest time the PreciseTime class can hold.
+   * @tparam EXPO The exponent of the time unit.
+   * @return The minimum PreciseTime object.
    */
   template <int EXPO = 1>
   static constexpr PreciseTime min() noexcept {
@@ -276,8 +457,10 @@ class PreciseTime {
     return ps;
   }
 
-  /*!
-   * \brief zero Returns a PreciseTime of zero
+  /**
+   * @brief Returns a PreciseTime object representing zero.
+   * @tparam EXPO The exponent of the time unit.
+   * @return A PreciseTime object with zero value.
    */
   template <int EXPO = 1>
   static constexpr PreciseTime zero() noexcept {
@@ -286,10 +469,10 @@ class PreciseTime {
     return ps;
   }
 
-  /*!
-   * \brief toDouble() Casts the PrecisionTime to a double value in the unit
-   * given with the template
-   * \return the time as a double in the given unit.
+  /**
+   * @brief Converts the PreciseTime to a double value in the specified unit.
+   * @tparam c The chrono duration type std::chrono::nanoseconds.
+   * @return The time as a double in the specified unit.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::nanoseconds>::value, double>::type toDouble() const
@@ -299,10 +482,10 @@ class PreciseTime {
            static_cast<double>(nano_seconds.count()) + sub_nano_seconds;
   }
 
-  /*!
-   * \brief toDouble() Casts the PrecisionTime to a double value in the unit
-   * given with the template
-   * \return the time as a double in the given unit.
+  /**
+   * @brief Converts the PreciseTime to a double value in the specified unit.
+   * @tparam c The chrono duration type std::chrono::microseconds.
+   * @return The time as a double in the specified unit.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::microseconds>::value, double>::type toDouble() const
@@ -312,10 +495,10 @@ class PreciseTime {
            ns2us(static_cast<double>(nano_seconds.count()) + sub_nano_seconds);
   }
 
-  /*!
-   * \brief toDouble() Casts the PrecisionTime to a double value in the unit
-   * given with the template
-   * \return the time as a double in the given unit.
+  /**
+   * @brief Converts the PreciseTime to a double value in the specified unit.
+   * @tparam c The chrono duration type std::chrono::milliseconds.
+   * @return The time as a double in the specified unit.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::milliseconds>::value, double>::type toDouble() const
@@ -325,10 +508,10 @@ class PreciseTime {
            ns2ms(static_cast<double>(nano_seconds.count()) + sub_nano_seconds);
   }
 
-  /*!
-   * \brief toDouble() Casts the PrecisionTime to a double value in the unit
-   * given with the template
-   * \return the time as a double in the given unit.
+  /**
+   * @brief Converts the PreciseTime to a double value in the specified unit.
+   * @tparam c The chrono duration type std::chrono::seconds>.
+   * @return The time as a double in the specified unit.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::seconds>::value, double>::type toDouble() const
@@ -338,10 +521,10 @@ class PreciseTime {
            ns2s(static_cast<double>(nano_seconds.count()) + sub_nano_seconds);
   }
 
-  /*!
-   * \brief toDouble() Casts the PrecisionTime to a double value in the unit
-   * given with the template
-   * \return the time as a double in the given unit.
+  /**
+   * @brief Converts the PreciseTime to a double value in the specified unit.
+   * @tparam c The chrono duration type std::chrono::minutes.
+   * @return The time as a double in the specified unit.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::minutes>::value, double>::type toDouble() const
@@ -351,10 +534,10 @@ class PreciseTime {
            ns2m(static_cast<double>(nano_seconds.count()) + sub_nano_seconds);
   }
 
-  /*!
-   * \brief toDouble() Casts the PrecisionTime to a double value in the unit
-   * given with the template
-   * \return the time as a double in the given unit.
+  /**
+   * @brief Converts the PreciseTime to a double value in the specified unit.
+   * @tparam c The chrono duration type std::chrono::hours.
+   * @return The time as a double in the specified unit.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::hours>::value, double>::type toDouble() const
@@ -364,12 +547,10 @@ class PreciseTime {
            ns2h(static_cast<double>(nano_seconds.count()) + sub_nano_seconds);
   }
 
-  /*!
-   * \brief convert() Converts the PrecisionTime to the type given in the
-   * template.
-   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > convert<nanoseconds>
-   * will return (((3600*2h + 60*3m + 44s)*1000 + 40ms)*1000 + 66us)*1000 + 12ns
-   * = 7364040066012ns
+  /**
+   * @brief Converts the PreciseTime to the specified chrono duration type.
+   * @tparam c The chrono duration type std::chrono::nanoseconds.
+   * @return The time as the specified chrono duration type.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::nanoseconds>::value, c>::type convert() const
@@ -378,12 +559,10 @@ class PreciseTime {
                                     nano_seconds.count());
   }
 
-  /*!
-   * \brief convert() Converts the PrecisionTime to the type given in the
-   * template.
-   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > convert<microseconds>
-   * will return ((3600*2h + 60*3m + 44s)*1000 + 40ms)*1000 + 66us =
-   * 7364040066us
+  /**
+   * @brief Converts the PreciseTime to the specified chrono duration type.
+   * @tparam c The chrono duration type std::chrono::microseconds.
+   * @return The time as the specified chrono duration type.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::microseconds>::value, c>::type convert() const
@@ -392,11 +571,10 @@ class PreciseTime {
                                      ns2us(nano_seconds.count()));
   }
 
-  /*!
-   * \brief convert() Converts the PrecisionTime to the type given in the
-   * template.
-   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > convert<milliseconds>
-   * will return (3600*2h + 60*3m + 44s)*1000 + 40ms= 7364040ms
+  /**
+   * @brief Converts the PreciseTime to the specified chrono duration type.
+   * @tparam c The chrono duration type std::chrono::milliseconds.
+   * @return The time as the specified chrono duration type.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::milliseconds>::value, c>::type convert() const
@@ -405,11 +583,10 @@ class PreciseTime {
                                      ns2ms(nano_seconds.count()));
   }
 
-  /*!
-   * \brief convert() Converts the PrecisionTime to the type given in the
-   * template.
-   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > convert<seconds> will
-   * return 3600*2h + 60*3m + 44s= 7364s
+  /**
+   * @brief Converts the PreciseTime to the specified chrono duration type.
+   * @tparam c The chrono duration type std::chrono::seconds.
+   * @return The time as the specified chrono duration type.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::seconds>::value, c>::type convert() const
@@ -417,11 +594,10 @@ class PreciseTime {
     return std::chrono::seconds(h2s(hours.count())) + seconds;
   }
 
-  /*!
-   * \brief convert() Converts the PrecisionTime to the type given in the
-   * template.
-   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > convert<minutes> will
-   * return 60*2h + 3m = 123m
+  /**
+   * @brief Converts the PreciseTime to the specified chrono duration type.
+   * @tparam c The chrono duration type std::chrono::minutes.
+   * @return The time as the specified chrono duration type.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::minutes>::value, c>::type convert() const
@@ -430,11 +606,10 @@ class PreciseTime {
     ;
   }
 
-  /*!
-   * \brief convert() Converts the PrecisionTime to the type given in the
-   * template.
-   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > convert<hours> will
-   * return 2h
+  /**
+   * @brief Converts the PreciseTime to the specified chrono duration type.
+   * @tparam c The chrono duration type std::chrono::hours.
+   * @return The time as the specified chrono duration type.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::hours>::value, c>::type convert() const
@@ -442,10 +617,10 @@ class PreciseTime {
     return hours;
   }
 
-  /*!
-   * \brief get() Returns the part of the time of which the type was given.
-   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > get<nanoseconds> will
-   * return 12ns
+  /**
+   * @brief Returns the part of the time corresponding to the specified chrono duration type.
+   * @tparam c The chrono duration type std::chrono::nanoseconds.
+   * @return The part of the time as the specified chrono duration type.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::nanoseconds>::value, c>::type get() const
@@ -454,10 +629,10 @@ class PreciseTime {
     return std::chrono::nanoseconds(ns - (ns / 1000) * 1000);
   }
 
-  /*!
-   * \brief get() Returns the part of the time of which the type was given.
-   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > get<microseconds> will
-   * return 66us
+  /**
+   * @brief Returns the part of the time corresponding to the specified chrono duration type.
+   * @tparam c The chrono duration type std::chrono::microseconds.
+   * @return The part of the time as the specified chrono duration type.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::microseconds>::value, c>::type get() const
@@ -466,10 +641,10 @@ class PreciseTime {
     return std::chrono::microseconds(us - (us / 1000) * 1000);
   }
 
-  /*!
-   * \brief get() Returns the part of the time of which the type was given.
-   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > get<milliseconds> will
-   * return 40ms
+  /**
+   * @brief Returns the part of the time corresponding to the specified chrono duration type.
+   * @tparam c The chrono duration type std::chrono::milliseconds.
+   * @return The part of the time as the specified chrono duration type.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::milliseconds>::value, c>::type get() const
@@ -478,10 +653,10 @@ class PreciseTime {
     return std::chrono::milliseconds(ms - (ms / 1000) * 1000);
   }
 
-  /*!
-   * \brief get() Returns the part of the time of which the type was given.
-   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > get<seconds> will
-   * return 44s
+  /**
+   * @brief Returns the part of the time corresponding to the specified chrono duration type.
+   * @tparam c The chrono duration type std::chrono::seconds.
+   * @return The part of the time as the specified chrono duration type.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::seconds>::value, c>::type get() const
@@ -490,10 +665,10 @@ class PreciseTime {
     return std::chrono::seconds(s - (s / 60) * 60);
   }
 
-  /*!
-   * \brief get() Returns the part of the time of which the type was given.
-   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > get<minutes> will
-   * return 3m
+  /**
+   * @brief Returns the part of the time corresponding to the specified chrono duration type.
+   * @tparam c The chrono duration type std::chrono::minutes.
+   * @return The part of the time as the specified chrono duration type.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::minutes>::value, c>::type get() const
@@ -502,10 +677,10 @@ class PreciseTime {
     return std::chrono::minutes(m - (m / 60) * 60);
   }
 
-  /*!
-   * \brief get Returns the part of the time of which the type was given.
-   * \return if preciseTime = 2h,3m,44s,40ms,66us,12ns > get<hours> will
-   * return 2h
+  /**
+   * @brief Returns the part of the time corresponding to the specified chrono duration type.
+   * @tparam c The chrono duration type std::chrono::hours.
+   * @return The part of the time as the specified chrono duration type.
    */
   template <class c>
   constexpr typename std::enable_if<std::is_same<c, std::chrono::hours>::value, c>::type get() const
@@ -513,6 +688,10 @@ class PreciseTime {
     return hours;
   }
 
+  /**
+   * @brief Sets the time in nanoseconds.
+   * @param ns Time in nanoseconds.
+   */
   constexpr void setNanoseconds(double ns) noexcept {
     constexpr double max_int64_t =
         static_cast<double>(std::numeric_limits<int64_t>::max());
@@ -531,6 +710,10 @@ class PreciseTime {
     sanitizeS();
   }
 
+  /**
+   * @brief Sets the time in seconds.
+   * @param s Time in seconds.
+   */
   constexpr void setSeconds(double s) noexcept {
     constexpr double max_int64_t =
         static_cast<double>(std::numeric_limits<int64_t>::max());
@@ -547,6 +730,10 @@ class PreciseTime {
     setNanoseconds(s2ns(s - static_cast<double>(sec_l)));
   }
 
+  /**
+   * @brief Sets the time in hours.
+   * @param h Time in hours.
+   */
   constexpr void setHours(double h) noexcept {
     constexpr double max_int64_t =
         static_cast<double>(std::numeric_limits<int64_t>::max());
@@ -570,28 +757,28 @@ class PreciseTime {
     setNanoseconds(h2ns(h - static_cast<double>(hours_l)));
   }
 
-  ///
-  ///
-  /// </Construction Area>
-
-  /*!
-   * \brief getExponent returns the exponent of the PreciseTime.
-   * \return The exponent.
+  /**
+   * @brief Returns the exponent of the PreciseTime.
+   * @return The exponent.
    */
   constexpr int getExponent() const noexcept { return exponent; }
 
-  constexpr void setExponent(int exponent) noexcept {
-    this->exponent = exponent;
+  /**
+   * @brief Sets the exponent of the PreciseTime.
+   * @param exp The exponent to set.
+   */
+  constexpr void setExponent(int exp) noexcept {
+    this->exponent = exp;
   }
 
  private:
-  /*!
-   * \brief sanitizeNS If the internal counter for the nano seconds get over
+  /**
+   * @brief If the internal counter for the nano seconds get over
    * 999999999 we adjust the nanoseconds by adding to the internal seconds.
    */
   constexpr void sanitizeNS() noexcept {
     if (nano_seconds > MAX_VALIDE_NS || nano_seconds < MIN_VALIDE_NS) {
-      double seconds_from_nanoseconds = ns2s(nano_seconds.count());
+      double seconds_from_nanoseconds = static_cast<double>(ns2s(nano_seconds.count()));
       double carry_seconds = 0;
       fastModF(seconds_from_nanoseconds, carry_seconds);
       const int64_t carry_seconds_l = static_cast<int64_t>(carry_seconds);
@@ -604,20 +791,23 @@ class PreciseTime {
     }
   }
 
+  /**
+   * @brief Adjusts the sub-nanoseconds to ensure they are within valid range.
+   */
   constexpr void sanitizeSubNs() noexcept {
     const double ns = static_cast<double>(static_cast<int64_t>(sub_nano_seconds));
     nano_seconds += std::chrono::nanoseconds(static_cast<int64_t>(ns));
     sub_nano_seconds -= ns;
   }
 
-  /*!
-   * \brief sanitizeS If the internal counter for the seconds 3599
+  /**
+   * @brief If the internal counter for the seconds 3599
    * we adjust the seconds by adding to the internal hours.
    */
   constexpr void sanitizeS() noexcept {
     /// Sanitize seconds
     if (seconds > MAX_VALIDE_S || seconds < MIN_VALIDE_S) {
-      double hours_from_seconds = s2h(seconds.count());
+      double hours_from_seconds = static_cast<double>(s2h(seconds.count()));
       double carry_hours = 0;
       fastModF(hours_from_seconds, carry_hours);
 
@@ -634,8 +824,8 @@ class PreciseTime {
     }
   }
 
-  /*!
-   * \brief sanitizeSign Sometimes when substracting we end up with different
+  /**
+   * @brief Sometimes when substracting we end up with different
    * signs: {10s} - {10ns} will lead to a internal value of {+10s and -10ns}. We
    * have to adjust this to {9s and 999999990ns}.
    * This assumes all values (hours, seconds, nanoseconds to be in a sane range
@@ -684,8 +874,8 @@ class PreciseTime {
     }
   }
 
-  /*!
-   * \brief sanitize Combines all sanitize functions.
+  /**
+   * @brief Combines all sanitize functions.
    */
   constexpr void sanitize() noexcept {
     sanitizeSubNs();
@@ -694,12 +884,12 @@ class PreciseTime {
     sanitizeSign();
   }
 
-  /*!
-   * \brief OverflowProtection checks if a operation (+-* /) did cause an over
+  /**
+   * @brief Checks if a operation (+-* /) did cause an over
    * or underflow. If it happened THIS is set to max() or min();
-   * \param was_positive_before_operation Set to true if this was positive
+   * @param was_positive_before_operation Set to true if this was positive
    * before the operation.
-   * \param expected_higher Set to True if you expect this (time) to be higher
+   * @param expected_higher Set to True if you expect this (time) to be higher
    * than before the operation.
    */
   constexpr void overflowProtection(bool was_positive_before_operation,
@@ -721,6 +911,11 @@ class PreciseTime {
     }
   }
 
+  /**
+   * @brief Checks for overflow or underflow based on the given hours value.
+   * @param hours_d The hours value to check.
+   * @return True if overflow or underflow occurred, false otherwise.
+   */
   constexpr bool overflowProtection(double hours_d) noexcept {
     const auto type = overflowProtectionType(hours_d);
 
@@ -737,6 +932,11 @@ class PreciseTime {
     return false;
   }
 
+  /**
+   * @brief Determines the type of overflow or underflow based on the given hours value.
+   * @param hours_d The hours value to check.
+   * @return 1 for overflow, -1 for underflow, 0 for no overflow or underflow.
+   */
   constexpr int overflowProtectionType(double hours_d) noexcept {
     constexpr double max_h = static_cast<double>(std::chrono::hours::max().count());
     constexpr double min_h = static_cast<double>(std::chrono::hours::min().count());
@@ -751,10 +951,10 @@ class PreciseTime {
   }
 
  public:
-  /// <Arithmetics>
-  ///
-  ///
-
+  /**
+   * @brief Checks if the PreciseTime is positive.
+   * @return True if positive, false otherwise.
+   */
   constexpr bool isPositive() noexcept {
     if (hours.count() != 0) {
       return 0 < hours.count();
@@ -768,6 +968,11 @@ class PreciseTime {
     return sub_nano_seconds >= 0.;
   }
 
+  /**
+   * @brief Checks if the given PreciseTime is positive.
+   * @param pt The PreciseTime object to check.
+   * @return True if positive, false otherwise.
+   */
   constexpr bool isPositive(const PreciseTime &pt) noexcept {
     if (pt.hours.count() != 0) {
       return 0 < pt.hours.count();
@@ -781,6 +986,10 @@ class PreciseTime {
     return pt.sub_nano_seconds >= 0.;
   }
 
+  /**
+   * @brief Adds another PreciseTime to the current object.
+   * @param pt The other PreciseTime object to add.
+   */
   constexpr void operator+=(const PreciseTime &pt) noexcept {
     assert(pt.exponent == exponent &&
            "You can not add different units like s + s^2");
@@ -810,12 +1019,21 @@ class PreciseTime {
     overflowProtection(was_positive, expect_higher);
   }
 
+  /**
+   * @brief Adds another PreciseTime to the current object.
+   * @param pt The other PreciseTime object to add.
+   * @return The resulting PreciseTime object.
+   */
   constexpr PreciseTime operator+(const PreciseTime &pt) const noexcept {
     PreciseTime ret(*this);
     ret += pt;
     return ret;
   }
 
+  /**
+   * @brief Subtracts another PreciseTime from the current object.
+   * @param pt The other PreciseTime object to subtract.
+   */
   constexpr void operator-=(const PreciseTime &pt) noexcept {
     assert(pt.exponent == exponent &&
            "You can not substartc different units like s - s^2");
@@ -845,12 +1063,21 @@ class PreciseTime {
     overflowProtection(was_positive, expect_higher);
   }
 
+  /**
+   * @brief Subtracts another PreciseTime from the current object.
+   * @param pt The other PreciseTime object to subtract.
+   * @return The resulting PreciseTime object.
+   */
   constexpr PreciseTime operator-(const PreciseTime &pt) const noexcept {
     PreciseTime ret(*this);
     ret -= pt;
     return ret;
   }
 
+  /**
+   * @brief Multiplies the current PreciseTime by a scalar.
+   * @param multi The scalar multiplier.
+   */
   constexpr void operator*=(const double multi) noexcept {
     if (has_rolled_over) {
       return;
@@ -880,12 +1107,22 @@ class PreciseTime {
     exponent = exp;
   }
 
+  /**
+   * @brief Multiplies the current PreciseTime by a scalar.
+   * @param multi The scalar multiplier.
+   * @return The resulting PreciseTime object.
+   */
   constexpr PreciseTime operator*(const double multi) const noexcept {
     PreciseTime ret(*this);
     ret *= multi;
     return ret;
   }
 
+  /**
+   * @brief Multiplies the current PreciseTime by another PreciseTime.
+   * @param pt The other PreciseTime object to multiply.
+   * @return The resulting PreciseTime object.
+   */
   constexpr PreciseTime operator*(const PreciseTime &pt) const noexcept {
     if (has_rolled_over) {
       return *this;
@@ -914,17 +1151,31 @@ class PreciseTime {
     return ret;
   }
 
+  /**
+   * @brief Divides the current PreciseTime by a scalar.
+   * @param div The scalar divisor.
+   * @return The resulting PreciseTime object.
+   */
   constexpr PreciseTime operator/(const double div) const noexcept {
     PreciseTime ret(*this);
     ret *= (1. / div);
     return ret;
   }
 
+  /**
+   * @brief Divides the current PreciseTime by a scalar.
+   * @param div The scalar divisor.
+   */
   constexpr void operator/=(const double div) {
     (*this) *= (1.0 / div);  // this is not as precise
     return;
   }
 
+  /**
+   * @brief Divides the current PreciseTime by another PreciseTime.
+   * @param pt The other PreciseTime object to divide.
+   * @return The resulting PreciseTime object.
+   */
   constexpr PreciseTime operator/(const PreciseTime &pt) const noexcept {
     if (has_rolled_over) {
       return *this;
@@ -953,13 +1204,9 @@ class PreciseTime {
     return ret;
   }
 
-  /*!
-   * \brief Returns an array of 6 int64_t values containing the time components
-   * itemized into:
-   * {"nanoseconds", "microseconds", "milliseconds", "seconds", "minutes",
-   * "hours"};
-   * You can use the get<td::chrono::duration>() methode if you dont need all
-   * components.
+  /**
+   * @brief Returns an array of time components separated into units.
+   * @return An array containing time components: nanoseconds, microseconds, milliseconds, seconds, minutes, hours.
    */
   constexpr std::array<int64_t, 6> getSeperatedTimeComponents() const noexcept {
     return {get<std::chrono::nanoseconds>().count(),
@@ -970,8 +1217,17 @@ class PreciseTime {
             get<std::chrono::hours>().count()};
   }
 
+  /**
+   * @brief Checks if the PreciseTime has rolled over due to overflow or underflow.
+   * @return True if rolled over, false otherwise.
+   */
   constexpr bool hasRolledOver() { return has_rolled_over; }
 
+  /**
+   * @brief Computes the square root of the given PreciseTime.
+   * @param pt The PreciseTime object to compute the square root of.
+   * @return The square root of the given PreciseTime.
+   */
   static PreciseTime sqrt(PreciseTime &pt) noexcept {
     assert(pt.exponent % 2 == 0 &&
            "squareroot of Precise time with odd exponent not supported.");
@@ -987,21 +1243,21 @@ class PreciseTime {
     return pt;
   }
 
+  /**
+   * @brief Computes the square root of the current PreciseTime.
+   */
   void sqrt() noexcept { PreciseTime::sqrt(*this); }
 
+  /**
+   * @brief Returns a new PreciseTime object representing the square root of the current object.
+   * @return The square root of the current PreciseTime.
+   */
   PreciseTime getSqrt() const noexcept {
     PreciseTime ret = *this;
     PreciseTime::sqrt(ret);
     return ret;
   }
 
-  ///
-  ///
-  /// </Arithmetics>
-
-  /// <Comparisons>
-  ///
-  ///
   constexpr bool operator==(const PreciseTime &pt) const noexcept {
     return pt.exponent == exponent && pt.nano_seconds == nano_seconds &&
            pt.seconds == seconds && pt.hours == hours;
@@ -1053,10 +1309,14 @@ class PreciseTime {
   ///
   /// </Comparisons>
 
-  /*!
-   * \brief Implements a clean print for the current time:
+
+  /**
+   * @brief Prints the PreciseTime in a clean format.
    * {h: [xxxx]   m: [xx]   s: [xxx]   ms: [xxx]   us: [xxx]  ns:
    * [xxx]}^exponent
+   * @param os The output stream.
+   * @param pt The PreciseTime object to print.
+   * @return The output stream.
    */
   friend std::ostream &operator<<(std::ostream &os, const PreciseTime &pt) noexcept {
     auto blanks = [](int64_t num) {
@@ -1093,12 +1353,20 @@ class PreciseTime {
     return os;
   }
 
+  /**
+   * @brief Converts the PreciseTime to a string representation.
+   * @return The string representation of the PreciseTime.
+   */
   std::string toString() const noexcept {
     std::stringstream ss;
     ss << *this;
     return ss.str();
   }
 
+  /**
+   * @brief Returns the most significant time unit of the PreciseTime.
+   * @return A PreciseTime object representing the most significant time unit.
+   */
   constexpr PreciseTime getMayorTime() const noexcept {
     if (get<std::chrono::hours>().count() > 0) {
       return PreciseTime(get<std::chrono::hours>());
@@ -1121,6 +1389,10 @@ class PreciseTime {
     return zero();
   }
 
+  /**
+   * @brief Returns the most significant time unit as a string.
+   * @return A string representing the most significant time unit.
+   */
   std::string getMayorTimeString() const noexcept {
     if (get<std::chrono::hours>().count() > 0) {
       return std::to_string(get<std::chrono::hours>().count()) + "h";
@@ -1143,13 +1415,13 @@ class PreciseTime {
     return std::to_string(sub_nano_seconds) + "ns";
   }
 
-  /*!
-   * \brief Returns the time in its highst format. E.g.:
+
+  /**
+   * @brief Returns the time in its highest format as a string. E.g.:
    * 44s,40ms,66us,12ns.getTimeString(4) --> "44.04s"
    * 66us,12ns.getTimeString(4) --> "66.02us"
-   * \param precision The amount of numbers after the most significant power of
-   * ten.
-   * \return String of time in highst format.
+   * @param precision The number of decimal places to include.
+   * @return A string representing the time in its highest format.
    */
   std::string getTimeString(int precision) const noexcept {
     double time_d = toDouble<std::chrono::nanoseconds>();

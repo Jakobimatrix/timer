@@ -176,7 +176,6 @@ private:
    */
   void debug2Console() const {
     using ns = std::chrono::nanoseconds;
-    const auto frame_end = PreciseTime::PrecisionClock::now();
     std::pair<std::string, PreciseTime> longest("", PreciseTime::zero());
     std::pair<std::string, PreciseTime> second_longest = longest;
     std::pair<std::string, PreciseTime> third_longest = longest;
@@ -196,9 +195,9 @@ private:
     }
 
     const double f = 100. / last_frame_record->first.toDouble<ns>();
-    const int p1 = std::round(longest.second.toDouble<ns>() * f);
-    const int p2 = std::round(second_longest.second.toDouble<ns>() * f);
-    const int p3 = std::round(third_longest.second.toDouble<ns>() * f);
+    const int p1 = static_cast<int>(std::round(longest.second.toDouble<ns>() * f));
+    const int p2 = static_cast<int>(std::round(second_longest.second.toDouble<ns>() * f));
+    const int p3 = static_cast<int>(std::round(third_longest.second.toDouble<ns>() * f));
 
     // max name length is 10 characters. See printf %-10s
     const auto rs = [](std::string &s) {

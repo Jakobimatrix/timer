@@ -348,8 +348,8 @@ public:
       std::vector<std::pair<size_t, size_t>> number_color;
       number_color.resize(indexes_used.size());
 
-      Histogram h;
-      h.initBuckets(min_bucket_size, histogram_start, histogram_end);
+      Histogram temp_histogram;
+      temp_histogram.initBuckets(min_bucket_size, histogram_start, histogram_end);
 
       const double smallest_unit =
           max_num_in_bucket / static_cast<double>(rs[0].calcPlotSize());
@@ -364,7 +364,7 @@ public:
            << "\n";
       };
 
-      for (const auto &bucket_comb_histo : h.buckets) {
+      for (const auto &bucket_comb_histo : temp_histogram.buckets) {
 
         for (size_t i : indexes_used) {
           const auto &current_buckets = rs[i].h.buckets;
@@ -407,7 +407,7 @@ public:
         std::string data("");
         for (const auto &nc : number_color) {
           const size_t num_units =
-              static_cast<size_t>(nc.first / smallest_unit);
+              static_cast<size_t>(static_cast<double>(nc.first) / smallest_unit);
           if (current_cursor_position == num_units) {
             continue; // skip this, we cannot print two colors onto each other
           }
@@ -494,7 +494,7 @@ public:
         }
       }
       result.mean =
-          sum / (result.number_measurements - result.number_outliners);
+          sum / static_cast<double>(result.number_measurements - result.number_outliners);
     };
 
     auto setMinMax = [&timer, &result]() {
@@ -525,7 +525,7 @@ public:
         }
       }
       PreciseTime variance =
-          var_sum / (result.number_measurements - result.number_outliners - 1);
+          var_sum / static_cast<double>(result.number_measurements - result.number_outliners - 1);
       variance.sqrt();
       result.standard_derivation = variance;
     };
@@ -735,26 +735,26 @@ public:
   }
 
 private:
-  PreciseTime findMedian(std::vector<PreciseTime> &measurements) noexcept {
+  PreciseTime findMedian(std::vector<PreciseTime> &values) noexcept {
     // https://www.geeksforgeeks.org/finding-median-of-unsorted-array-in-linear-time-using-c-stl/
-    const size_t n = measurements.size();
+    const long int n = static_cast<long int>(values.size());
 
     // If size of the arr[] is even
     if (n % 2 == 0) {
 
       // Applying nth_element
       // on n/2th index
-      std::nth_element(measurements.begin(), measurements.begin() + n / 2,
-                       measurements.end());
+      std::nth_element(values.begin(), values.begin() + n / 2, values.end());
 
       // Applying nth_element
       // on (n-1)/2 th index
-      std::nth_element(measurements.begin(), measurements.begin() + (n - 1) / 2,
-                       measurements.end());
+      std::nth_element(values.begin(), values.begin() + (n - 1) / 2, values.end());
 
       // Find the average of value at
       // index N/2 and (N-1)/2
-      return (measurements[(n - 1) / 2] + measurements[n / 2]) / 2.0;
+      const size_t right_mid_index = static_cast<size_t>(n / 2);
+      const size_t left_mid_index = right_mid_index - 1;
+      return (values[left_mid_index] + values[right_mid_index]) / 2.0;
     }
 
     // If size of the arr[] is odd
@@ -762,17 +762,17 @@ private:
 
       // Applying nth_element
       // on n/2
-      nth_element(measurements.begin(), measurements.begin() + n / 2,
-                  measurements.end());
+      nth_element(values.begin(), values.begin() + n / 2, values.end());
 
       // Value at index (N/2)th
       // is the median
-      return measurements[n / 2];
+      const size_t mid_index = static_cast<size_t>(n / 2);
+      return values[mid_index];
     }
   }
 
-  PreciseTime findMedianCopy(std::vector<PreciseTime> measurements) {
-    return findMedian(measurements);
+  PreciseTime findMedianCopy(std::vector<PreciseTime> values) {
+    return findMedian(values);
   }
 
   typedef std::conditional<std::chrono::high_resolution_clock::is_steady,

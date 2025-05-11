@@ -3,8 +3,16 @@ Header only library. Requires c++17.
 
 Features a class to calculate with time and multiple timer classes for recording and profiling.
 
-
 Please use clang-tidy if you want to contribute: [easy installation](https://github.com/Jakobimatrix/initRepro)
+
+## Usage
+This is a header only library:
+ * either include the files located in `src/timer/include/timer` directly
+ * or use CMake and just include this projects root `CMakeLists.txt` and add the `timer_lib_0.0.1` with target_link_libraries
+
+## run the tests
+`./build.sh -r -t`
+ 
 
 ## PreciseTime class:
  * adding/substracting while considering the unit: 1[s] + 1[s] -> ok; 1[s] + 1[s^2] -> error
@@ -47,12 +55,6 @@ Please use clang-tidy if you want to contribute: [easy installation](https://git
 ## SimpleTimer class:
  * Start/Reset/getTime nothing more.
  
-
-# Build the project (Linux)
-* If you use CMake to build your project place this repro inside 'path' and use **add_subdirectory(path/
-timer)** and **target_link_libraries(your_lib timer_lib)**
-* Or just include the header
-* To run the tests run `scripts/debug_build.sh`
 
 # Examples
 

@@ -1,12 +1,39 @@
-add_library(timer_lib INTERFACE)
+cmake_minimum_required(VERSION 3.16)
 
-target_include_directories(timer_lib INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+# Define project if not already defined (useful for subproject inclusion)
+if (NOT DEFINED PROJECT_NAME)
+    project(precise_timer LANGUAGES CXX)
 
-option(BUILD_TESTS "Build tests for timer_lib" TRUE)
-if(BUILD_TESTS)
-  enable_testing()
-  add_subdirectory(tests)
-  add_subdirectory(executable)
+    # This variable must exist!
+    set(ENVIRONMENT_SETTINGS "ProjectSettings")
+
+    add_library("${ENVIRONMENT_SETTINGS}" INTERFACE)
+
+    # ===== Compiler Settings =====
+    include(initRepo/cmake/CompilerSetup.cmake)
+
+    # ===== Warnings and Tools =====
+    include(initRepo/cmake/CompilerWarnings.cmake)
+    set_project_warnings(${ENVIRONMENT_SETTINGS})
+
+    # ===== External Dependencies =====
+    include(initRepo/cmake/Includes.cmake)
+
+    # ===== Options =====
+    include(initRepo/cmake/Options.cmake)
+    # enable_multithreading(${ENVIRONMENT_SETTINGS})
+    # enable_shared_libraries(${ENVIRONMENT_SETTINGS})
+
+    # one of these two above is needed, enable_shared_libraries must be used too!!
+    enforce_clang_stl(${ENVIRONMENT_SETTINGS} "libstdc++")
+
+    # ===== Fuzzing =====
+    # include(initRepo/cmake/ClangFuzzyTests.cmake)
 endif()
 
+enable_testing()
 
+
+add_subdirectory(src/timer)
+add_subdirectory(src/executables)
+add_subdirectory(src/tests)
