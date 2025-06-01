@@ -1,6 +1,6 @@
 
 # change the version if there are API changes!
-set(LIB_VERSION "0.0.1")
+set(LIB_VERSION "1.0.0")
 # set the name of your library here!
 set(LIB_NAME "timer_lib")
 
