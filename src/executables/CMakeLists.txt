@@ -12,7 +12,7 @@ else()
 
   target_link_libraries(example_timer 
     PRIVATE
-    timer_lib_0.0.1
+    timer_lib_1.0.0
     ${ENVIRONMENT_SETTINGS}
   ) 
 

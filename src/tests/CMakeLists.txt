@@ -20,14 +20,14 @@ if (NOT FUZZER_ENABLED)
   target_link_libraries(test_timer 
     PRIVATE
     Catch2::Catch2WithMain
-    timer_lib_0.0.1
+    timer_lib_1.0.0
     ${ENVIRONMENT_SETTINGS}
     )
 
     target_link_libraries(test_precise_time 
     PRIVATE
     Catch2::Catch2WithMain
-    timer_lib_0.0.1
+    timer_lib_1.0.0
     ${ENVIRONMENT_SETTINGS}
     )
 
