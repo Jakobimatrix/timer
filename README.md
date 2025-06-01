@@ -1,5 +1,5 @@
 # Summary
-Header only library. Requires c++17.
+Header only library. Requires c++17. (maaaybe 20, its a long time since I used 17 and since than I did make some updates...)
 
 Features a class to calculate with time and multiple timer classes for recording and profiling.
 
