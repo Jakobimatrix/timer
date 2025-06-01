@@ -5,6 +5,15 @@ Features a class to calculate with time and multiple timer classes for recording
 
 Please use clang-tidy if you want to contribute: [easy installation](https://github.com/Jakobimatrix/initRepro)
 
+[![C/C++ CI](https://github.com/Jakobimatrix/timer/actions/workflows/ubuntu_build_test.yml/badge.svg?branch=master)](https://github.com/Jakobimatrix/timer/actions/workflows/ubuntu_build_test.yml)
+
+ - OS: Ubuntu 24.04
+ - compiler: clang 19, gcc 13
+ - debug + release
+ - tests
+
+ ---
+
 ## Usage
 This is a header only library:
  * either include the files located in `src/timer/include/timer` directly
