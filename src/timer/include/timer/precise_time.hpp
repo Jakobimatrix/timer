@@ -64,7 +64,7 @@ constexpr auto ms2ns(t milli) {
  */
 template <class t>
 constexpr auto s2ns(t sec) {
-  constexpr t SEC_TO_NANO = static_cast<t>(1000000000);
+  constexpr t SEC_TO_NANO = static_cast<t>(1000000000LL);
   return sec * SEC_TO_NANO;
 }
 
@@ -100,7 +100,7 @@ constexpr auto ns2ms(t ns) {
  */
 template <class t>
 constexpr auto ns2s(t ns) {
-  constexpr t NANO_TO_SEC = static_cast<t>(1000000000);
+  constexpr t NANO_TO_SEC = static_cast<t>(1000000000LL);
   return ns / NANO_TO_SEC;
 }
 
@@ -112,7 +112,7 @@ constexpr auto ns2s(t ns) {
  */
 template <class t>
 constexpr auto ns2m(t ns) {
-  constexpr t NANO_TO_MIN = static_cast<t>(1000000000L * 60L);
+  constexpr t NANO_TO_MIN = static_cast<t>(1000000000LL * 60LL);
   return ns / NANO_TO_MIN;
 }
 
@@ -124,7 +124,7 @@ constexpr auto ns2m(t ns) {
  */
 template <class t>
 constexpr auto ns2h(t ns) {
-  constexpr t NANO_TO_HOUR = static_cast<t>(1000000000L * 3600L);
+  constexpr t NANO_TO_HOUR = static_cast<t>(1000000000LL * 3600LL);
   return ns / NANO_TO_HOUR;
 }
 
@@ -172,7 +172,7 @@ constexpr auto h2m(t h) {
  */
 template <class t>
 constexpr auto h2ms(t h) {
-  constexpr t HOUR_TO_MILLI = static_cast<t>(3600 * 1000);
+  constexpr t HOUR_TO_MILLI = static_cast<t>(3600LL * 1000LL);
   return h * HOUR_TO_MILLI;
 }
 
@@ -184,7 +184,7 @@ constexpr auto h2ms(t h) {
  */
 template <class t>
 constexpr auto h2us(t h) {
-  constexpr t HOUR_TO_MICRO = static_cast<t>(3600L * 1000000L);
+  constexpr t HOUR_TO_MICRO = static_cast<t>(3600LL * 1000000LL);
   return h * HOUR_TO_MICRO;
 }
 
@@ -196,7 +196,7 @@ constexpr auto h2us(t h) {
  */
 template <class t>
 constexpr auto h2ns(t h) {
-  constexpr t HOUR_TO_NANO = static_cast<t>(3600L * 1000000000L);
+  constexpr t HOUR_TO_NANO = static_cast<t>(3600LL * 1000000000LL);
   return h * HOUR_TO_NANO;
 }
 
