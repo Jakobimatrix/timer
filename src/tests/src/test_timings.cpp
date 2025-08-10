@@ -1,16 +1,17 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_message.hpp>
 
-#include <cstdio>
-#include <timer/precise_time.hpp>
-#include <sstream>
-
-#include <array>
-#include <cmath>
-#include <limits>
-#include <numeric>
 #include <timer/collecting_timer.hpp>
 #include <timer/frame_timer.hpp>
 #include <timer/precise_time.hpp>
+
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstdio>
+#include <string>
+#include <vector>
 
 using ns = std::chrono::nanoseconds;
 using us = std::chrono::microseconds;
@@ -20,9 +21,9 @@ using m  = std::chrono::minutes;
 using h  = std::chrono::hours;
 
 
-void test_for_result(const CollectingTimer::Result timer_result,
-                     const CollectingTimer::Result expected_timer_result,
-                     int line) {
+static void test_for_result(const CollectingTimer::Result& timer_result,  // NOLINT readability-function-cognitive-complexity // Happens inn big tests
+                            const CollectingTimer::Result& expected_timer_result,
+                            int line) {
 
   INFO("LINE: " + std::to_string(line) + " min_measurement");
   REQUIRE(timer_result.min_measurement == expected_timer_result.min_measurement);
@@ -48,9 +49,9 @@ void test_for_result(const CollectingTimer::Result timer_result,
   }
 }
 
-void test_for_Histogram(const CollectingTimer::Histogram timer_histogram,
-                        const CollectingTimer::Histogram expected_timer_histogram,
-                        int line) {
+static void test_for_Histogram(const CollectingTimer::Histogram& timer_histogram,
+                               const CollectingTimer::Histogram& expected_timer_histogram,
+                               int line) {
 
   INFO("LINE: " + std::to_string(line) + " bucket_size");
   REQUIRE(timer_histogram.bucket_size == expected_timer_histogram.bucket_size);
@@ -73,8 +74,9 @@ void test_for_Histogram(const CollectingTimer::Histogram timer_histogram,
 }
 
 TEST_CASE("test_timer") {
-  const std::string timer                = "t";
-  std::vector<PreciseTime> timer_0_times = {
+  // NOLINTBEGIN(readability-magic-numbers) // these are random numbers I cant give every one a meaningfull name
+  const std::string timer                      = "t";
+  const std::vector<PreciseTime> timer_0_times = {
     ns(5), ns(1), ns(7), ns(6), ns(8), ns(4), ns(2), ns(20)};
   CollectingTimer t_0(timer_0_times, timer);
   CollectingTimer::Result r_0;
@@ -110,11 +112,11 @@ TEST_CASE("test_timer") {
   // put    49,50,51
   // put 48,49,50,51,52
   // ...
-  constexpr size_t num_measurements = 50 * 50;
+  constexpr size_t num_measurements = 50ULL * 50ULL;
   std::vector<PreciseTime> timer_2_times(num_measurements);
   long int num_input = 0;
   long int range(1);
-  ms center(50);
+  const ms center(50);
   int ii = 0;
   while (num_input < static_cast<long int>(num_measurements)) {
     std::generate(
@@ -139,7 +141,7 @@ TEST_CASE("test_timer") {
   r_2_expected.standard_derivation = ns(414) + us(412) + ms(20);
   r_2_expected.number_measurements = num_measurements;
   r_2_expected.number_outliners    = 0;
-  r_2_expected.is_outliner         = std::vector<char>(num_measurements, false);
+  r_2_expected.is_outliner         = std::vector<bool>(num_measurements, false);
 
   test_for_result(r_2, r_2_expected, __LINE__);
 
@@ -164,43 +166,47 @@ TEST_CASE("test_timer") {
   // Bucket 7: [33-37] num = 175
   // ...
 
-  constexpr std::array<int, 19> num_in_bucket = {
+  constexpr size_t numBuckets                         = 19;
+  constexpr std::array<int, numBuckets> num_in_bucket = {
     21, 45, 70, 95, 147, 150, 175, 200, 273, 243, 220, 195, 201, 140, 115, 90, 75, 35, 10};
 
-  for (size_t i = 0; i < 19; i++) {
-    r_2_expected.h.buckets[i].num = num_in_bucket[i];
+  for (size_t i = 0; i < numBuckets; i++) {
+    r_2_expected.h.buckets[i].num =
+      num_in_bucket[i];  // NOLINT cppcoreguidelines-pro-bounds-constant-array-index // trust in the test
   }
 
   test_for_Histogram(r_2.h, r_2_expected.h, __LINE__);
+  // NOLINTEND(readability-magic-numbers)
 }
 
 TEST_CASE("test_FrameTimer") {
-  FrameTimer ft;
-  std::string t1("F1");
-  std::string t2("F2");
+  FrameTimer frametimer;
+  std::string timer1("F1");
+  std::string timer2("F2");
 
-  auto f1 = [&ft, &t1](int i) {
-    const auto t = ft.startScopedTimer(t1);
-    int a        = 0;
+  auto func1 = [&frametimer, &timer1](int i) {
+    const auto scopedTimer = frametimer.startScopedTimer(timer1);
+    int aVar               = 0;
     for (int j = i; j > 0; --j) {
-      a += j / i;
+      aVar += j / i;
     }
-    return a;
+    return aVar;
   };
 
-  auto f2 = [&ft, &t2, &f1](int i) {
-    const auto t = ft.startScopedTimer(t2);
-    int a        = 0;
+  auto func2 = [&frametimer, &timer2, &func1](int i) {
+    const auto scopedTimer = frametimer.startScopedTimer(timer2);
+    int aVar               = 0;
     for (int j = i; j > 0; --j) {
-      a += f1(j);
+      aVar += func1(j);
     }
-    return a;
+    return aVar;
   };
 
+  constexpr int NUM_LOOPS = 1000;
   std::vector<int> erg;
-  for (int i = 0; i < 1000; ++i) {
-    ft.frameStart<true>();
-    erg.push_back(f2(i));
+  for (int i = 0; i < NUM_LOOPS; ++i) {
+    frametimer.frameStart<true>();
+    erg.push_back(func2(i));
   }
 
   REQUIRE(erg[0] == 0);

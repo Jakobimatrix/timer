@@ -1,57 +1,65 @@
+#include <chrono>
+#include <cmath>
 #include <timer/frame_timer.hpp>
+#include <vector>
 
-FrameTimer ft;
-std::string t1("innerLoop");
-std::string t2("outerLoop");
-std::string t3("cos");
-std::string t4("sin");
+namespace timedFunctions {
+static FrameTimer frameTimer;  // NOLINT This is a single file executable
 
-int f1(int max) {
-  const auto t = ft.startScopedTimer(t1);
-  int a        = 0;
+static int f1(int max) {  // NOLINT This is a single file executable
+  const auto t = frameTimer.startScopedTimer("innerLoop");
+
+  int abc = 0;
   for (int j = max; j > 0; --j) {
-    a += j;
+    abc += j;
   }
-  return a;
+  return abc;
 }
 
-int f2(int max) {
-  const auto t = ft.startScopedTimer(t2);
-  int a        = 0;
+static int f2(int max) {  // NOLINT This is a single file executable
+  const auto timer = frameTimer.startScopedTimer("outerLoop");
+
+  int abc = 0;
   for (int j = max; j > 0; --j) {
-    a += f1(j);
+    abc += f1(j);
   }
-  return a;
+  return abc;
 }
 
-int f3(int max) {
-  const auto t = ft.startScopedTimer(t3);
-  double a     = 0;
+static int f3(int max) {  // NOLINT This is a single file executable
+  const auto timer = frameTimer.startScopedTimer("cos");
+
+  double abc = 0;
   for (int j = max; j > 0; --j) {
-    a += std::cos(static_cast<double>(j));
+    abc += std::cos(static_cast<double>(j));
   }
-  return static_cast<int>(a);
+  return static_cast<int>(abc);
 }
 
-int f4(int max) {
-  const auto t = ft.startScopedTimer(t4);
-  double a     = 0;
+static int f4(int max) {  // NOLINT This is a single file executable
+  const auto timer = frameTimer.startScopedTimer("sin");
+
+  double abc = 0;
   for (int j = max; j > 0; --j) {
-    a += std::sin(static_cast<double>(j));
+    abc += std::sin(static_cast<double>(j));
   }
-  return static_cast<int>(a);
+  return static_cast<int>(abc);
 }
+
+}  // namespace timedFunctions
 
 int main() {
   constexpr bool debug_to_console = false;
   std::vector<int> erg;
-  for (int max = 1; max < 1000; ++max) {
-    ft.frameStart<debug_to_console>();
-    erg.push_back(f2(max));
-    erg.push_back(f3(max));
-    erg.push_back(f4(max));
+  constexpr int NUM_ITERATIONS = 1000;
+  for (int max = 1; max < NUM_ITERATIONS; ++max) {
+    timedFunctions::frameTimer.frameStart<debug_to_console>();
+    erg.push_back(timedFunctions::f2(max));
+    erg.push_back(timedFunctions::f3(max));
+    erg.push_back(timedFunctions::f4(max));
   }
 
-  ft.measurementsToFile<std::chrono::microseconds>("/tmp/frames.csv", ';');
+  timedFunctions::frameTimer.measurementsToFile<std::chrono::microseconds>(
+    "/tmp/frames.csv", ';');
   return erg[0];
 }

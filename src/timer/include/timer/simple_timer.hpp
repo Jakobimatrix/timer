@@ -15,7 +15,7 @@
  * \brief A Single timer without statistic support.
  */
 class SingleTimer {
-public:
+ public:
   typedef std::conditional<std::chrono::high_resolution_clock::is_steady,
                            std::chrono::high_resolution_clock,
                            std::chrono::steady_clock>::type PrecisionClock;
@@ -23,7 +23,7 @@ public:
    * \brief Start one Simple Timer. No Statistics will be generated.
    */
   void start() {
-    started = true;
+    started    = true;
     start_time = PrecisionClock::now();
   }
 
@@ -42,7 +42,8 @@ public:
    * \return The passed time in given template format: std::chrono:: time
    * duration
    */
-  template <class T> T getPassedTime() const {
+  template <class T>
+  T getPassedTime() const {
     const auto stop_time = PrecisionClock::now();
     if (!started) {
       return std::chrono::duration_cast<T>(stop_time - stop_time);
@@ -50,7 +51,7 @@ public:
     return std::chrono::duration_cast<T>(stop_time - start_time);
   }
 
-private:
+ private:
   PrecisionClock::time_point start_time;
   bool started = false;
 };

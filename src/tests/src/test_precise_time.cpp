@@ -1,7 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
-#include <cstdio>
+
 #include <timer/precise_time.hpp>
-#include <sstream>
+
+#include <array>
+#include <chrono>
+#include <cstdint>
+#include <cstdio>
+#include <limits>
 
 using ns = std::chrono::nanoseconds;
 using us = std::chrono::microseconds;
@@ -11,20 +16,13 @@ using m  = std::chrono::minutes;
 using h  = std::chrono::hours;
 
 
-void test_for_all_times(const PreciseTime& pt, const std::array<int64_t, 6>& times, int line) {
+static constexpr size_t NUM_TESTS = 6;
+static void test_for_all_times(const PreciseTime& pt,
+                               const std::array<int64_t, NUM_TESTS>& times) {
   const auto pt_times = pt.getSeperatedTimeComponents();
 
-  const std::array<std::string, 6> info = {"Failed on nanoseconds.",
-                                           "Failed on microseconds.",
-                                           "Failed on milliseconds.",
-                                           "Failed on seconds.",
-                                           "Failed on minutes.",
-                                           "Failed on hours."};
-
-  for (size_t i = 0; i < 6; i++) {
-    INFO("LINE: " + std::to_string(line) + " " + info[i] + " Array index " +
-         std::to_string(i));
-    REQUIRE(pt_times[i] == times[i]);
+  for (size_t i = 0; i < times.size(); i++) {
+    REQUIRE(pt_times[i] == times[i]);  // NOLINT cppcoreguidelines-pro-bounds-constant-array-index // trust in the test
   }
 }
 
@@ -33,80 +31,84 @@ TEST_CASE("test_precise_time_class_min_max_rollover") {
   constexpr PreciseTime max_pt = PreciseTime::max();
   constexpr PreciseTime min_pt = PreciseTime::min();
 
-  constexpr std::array<int64_t, 6> expected_max_times = {
-    999l, 999l, 999l, 59l, 59l, 9223372036854775807l};
+  constexpr std::array<int64_t, NUM_TESTS> expected_max_times = {
+    999L, 999L, 999L, 59L, 59L, 9223372036854775807L};
 
   // https://stackoverflow.com/questions/64578042/cant-assign-64-bit-number-to-64-bit-min-in-c
   // hours_min == -9223372036854775808l);
-  constexpr std::array<int64_t, 6> expected_min_times = {
-    -999l, -999l, -999l, -59l, -59l, std::numeric_limits<std::int64_t>::min()};
-  test_for_all_times(max_pt, expected_max_times, __LINE__);
-  test_for_all_times(min_pt, expected_min_times, __LINE__);
+  constexpr std::array<int64_t, NUM_TESTS> expected_min_times = {
+    -999L, -999L, -999L, -59L, -59L, std::numeric_limits<std::int64_t>::min()};
+  test_for_all_times(max_pt, expected_max_times);
+  test_for_all_times(min_pt, expected_min_times);
 
   // the compiler actually sees that this is bad if constexpr
   // But at the moment no correct rollover for addition and substraction
   // constexpr PreciseTime pos_rollover = max_pt + ONE_NS;
 
-  PreciseTime pos_rollover = max_pt * 2;
-  test_for_all_times(pos_rollover, expected_max_times, __LINE__);
+  PreciseTime const pos_rollover = max_pt * 2;
+  test_for_all_times(pos_rollover, expected_max_times);
 
-  PreciseTime neg_rollover = min_pt * 2;
-  test_for_all_times(neg_rollover, expected_min_times, __LINE__);
+  PreciseTime const neg_rollover = min_pt * 2;
+  test_for_all_times(neg_rollover, expected_min_times);
 
-  PreciseTime pos_rollover_2 = min_pt * -2;
-  test_for_all_times(pos_rollover_2, expected_max_times, __LINE__);
+  PreciseTime const pos_rollover_2 = min_pt * -2;
+  test_for_all_times(pos_rollover_2, expected_max_times);
 
-  PreciseTime neg_rollover_2 = max_pt * -2;
-  test_for_all_times(neg_rollover_2, expected_min_times, __LINE__);
+  PreciseTime const neg_rollover_2 = max_pt * -2;
+  test_for_all_times(neg_rollover_2, expected_min_times);
 
-  PreciseTime pos_rollover_3 = min_pt * min_pt;
-  test_for_all_times(pos_rollover_3, expected_max_times, __LINE__);
+  PreciseTime const pos_rollover_3 = min_pt * min_pt;
+  test_for_all_times(pos_rollover_3, expected_max_times);
 
-  PreciseTime pos_rollover_4 = max_pt * max_pt;
-  test_for_all_times(pos_rollover_4, expected_max_times, __LINE__);
+  PreciseTime const pos_rollover_4 = max_pt * max_pt;
+  test_for_all_times(pos_rollover_4, expected_max_times);
 
-  PreciseTime neg_rollover_3 = max_pt * min_pt;
-  test_for_all_times(neg_rollover_3, expected_min_times, __LINE__);
+  PreciseTime const neg_rollover_3 = max_pt * min_pt;
+  test_for_all_times(neg_rollover_3, expected_min_times);
 
-  PreciseTime neg_rollover_4 = min_pt * max_pt;
-  test_for_all_times(neg_rollover_4, expected_min_times, __LINE__);
+  PreciseTime const neg_rollover_4 = min_pt * max_pt;
+  test_for_all_times(neg_rollover_4, expected_min_times);
 
-  for (int i = 0; i < 1000; i += 15) {
-    PreciseTime pos_rollover_5 = PreciseTime(ms(i)) + max_pt + ns(i);
-    test_for_all_times(pos_rollover_5, expected_max_times, __LINE__);
+  constexpr int NUM_RUNS  = 1000;
+  constexpr int INCREMENT = 15;
+  for (int i = 0; i < NUM_RUNS; i += INCREMENT) {
+    PreciseTime const pos_rollover_5 = PreciseTime(ms(i)) + max_pt + ns(i);
+    test_for_all_times(pos_rollover_5, expected_max_times);
 
-    PreciseTime neg_rollover_5 =
+    PreciseTime const neg_rollover_5 =
       PreciseTime(s(i)) * -1. + min_pt - ns(i) - ms(i) - h(i);
-    test_for_all_times(neg_rollover_5, expected_min_times, __LINE__);
+    test_for_all_times(neg_rollover_5, expected_min_times);
   }
 
-  PreciseTime pos_rollover_6 = max_pt + max_pt;
-  test_for_all_times(pos_rollover_6, expected_max_times, __LINE__);
+  PreciseTime const pos_rollover_6 = max_pt + max_pt;
+  test_for_all_times(pos_rollover_6, expected_max_times);
 
-  PreciseTime neg_rollover_6 = min_pt + min_pt;
-  test_for_all_times(neg_rollover_6, expected_min_times, __LINE__);
+  PreciseTime const neg_rollover_6 = min_pt + min_pt;
+  test_for_all_times(neg_rollover_6, expected_min_times);
 }
 
 TEST_CASE("test_precise_time_class_construct") {
 
   constexpr PreciseTime pt_0 = ns(98788987654321);
-  constexpr std::array<int64_t, 6> expected_times_0 = {321l, 654l, 987l, 28l, 26l, 27};
-  test_for_all_times(pt_0, expected_times_0, __LINE__);
+  constexpr std::array<int64_t, NUM_TESTS> expected_times_0 = {
+    321L, 654L, 987L, 28L, 26L, 27};
+  test_for_all_times(pt_0, expected_times_0);
 
-  constexpr PreciseTime pt_1                        = ns(-98788987654321);
-  constexpr std::array<int64_t, 6> expected_times_1 = {
-    -321l, -654l, -987l, -28l, -26l, -27};
-  test_for_all_times(pt_1, expected_times_1, __LINE__);
+  constexpr PreciseTime pt_1 = ns(-98788987654321);
+  constexpr std::array<int64_t, NUM_TESTS> expected_times_1 = {
+    -321L, -654L, -987L, -28L, -26L, -27};
+  test_for_all_times(pt_1, expected_times_1);
 
   constexpr PreciseTime pt_2 = ns(321) + us(654) + ms(987) + s(28) + m(26) + h(27);
-  test_for_all_times(pt_2, expected_times_0, __LINE__);
+  test_for_all_times(pt_2, expected_times_0);
 
   constexpr PreciseTime pt_3 = ns(321) - us(654) + ms(987) - s(28) + m(26) - h(27);
-  constexpr std::array<int64_t, 6> expected_times_3 = {-679l, -653l, -13l, -27l, -34l, -26};
-  test_for_all_times(pt_3, expected_times_3, __LINE__);
+  constexpr std::array<int64_t, NUM_TESTS> expected_times_3 = {
+    -679L, -653L, -13L, -27L, -34L, -26};
+  test_for_all_times(pt_3, expected_times_3);
 }
 
-TEST_CASE("test_precise_time_class_calculus") {
+TEST_CASE("test_precise_time_class_calculus") {  // NOLINT readability-function-cognitive-complexity // Happens inn big tests
 
   constexpr PreciseTime pt_0 = ns(8788987654321);
   constexpr auto pt_1        = pt_0 * 2;
@@ -133,7 +135,11 @@ TEST_CASE("test_precise_time_class_calculus") {
   const auto pt_9 = pt_8.getSqrt();
   REQUIRE(pt_7 == pt_9);
 
-  double value      = 98788987654321;
+  // NOLINTBEGIN(readability-magic-numbers) // these are random numbers I cant give every one a meaningfull name
+
+  constexpr double REALLY_BIG_NUMBER = 98788987654321;
+
+  double value      = REALLY_BIG_NUMBER;
   PreciseTime pt_10 = ns(static_cast<int64_t>(value));
   REQUIRE(pt_10.toDouble<ns>() == value);
   pt_10 -= us(44);
@@ -240,9 +246,11 @@ TEST_CASE("test_precise_time_class_calculus") {
 
   REQUIRE(pt_30_exp > pt_29_exp);
   REQUIRE(pt_29_exp < pt_30_exp);
+
+  // NOLINTEND(readability-magic-numbers)
 }
 
-TEST_CASE("test_precise_time_class_test_to_string") {
+TEST_CASE("test_precise_time_class_test_to_string") {  // NOLINT readability-function-cognitive-complexity // Happens inn big tests
   constexpr PreciseTime one_ns = std::chrono::nanoseconds(1);
   constexpr PreciseTime one_us = std::chrono::microseconds(1);
   constexpr PreciseTime one_ms = std::chrono::milliseconds(1);
@@ -306,15 +314,15 @@ TEST_CASE("test_precise_time_class_test_to_string") {
   REQUIRE(hmsmsusns.toString() ==
           "{h: [1]   m: [1]   s: [1]   ms: [1]   us: [1]   ns: [1]}^1");
 
-  constexpr PreciseTime ss   = one_s * one_s;
-  constexpr PreciseTime sss  = ss * one_s;
-  constexpr PreciseTime ssss = sss * one_s;
+  constexpr PreciseTime s_squared            = one_s * one_s;
+  constexpr PreciseTime s_cubed              = s_squared * one_s;
+  constexpr PreciseTime s_to_the_forth_power = s_cubed * one_s;
 
-  REQUIRE(ss.toString() ==
+  REQUIRE(s_squared.toString() ==
           "{h: [0]   m: [0]   s: [1]   ms: [0]   us: [0]   ns: [0]}^2");
-  REQUIRE(sss.toString() ==
+  REQUIRE(s_cubed.toString() ==
           "{h: [0]   m: [0]   s: [1]   ms: [0]   us: [0]   ns: [0]}^3");
-  REQUIRE(ssss.toString() ==
+  REQUIRE(s_to_the_forth_power.toString() ==
           "{h: [0]   m: [0]   s: [1]   ms: [0]   us: [0]   ns: [0]}^4");
 }
 

@@ -21,11 +21,10 @@
 #include <vector>
 
 class CollectingTimer {
-public:
-  using time_point = PreciseTime::PrecisionClock::time_point;
+ public:
+  using time_point  = PreciseTime::PrecisionClock::time_point;
   CollectingTimer() = default;
-  CollectingTimer(const std::vector<PreciseTime> &given_measurements,
-                  const std::string label) {
+  CollectingTimer(const std::vector<PreciseTime>& given_measurements, const std::string label) {
     measurements[label] = given_measurements;
   }
 
@@ -33,9 +32,9 @@ public:
    * \brief start starts a new measurement.
    * \param s The name under which the measurement/timer shall be saved.
    */
-  void start(const std::string &s = "") noexcept {
+  void start(const std::string& s = "") noexcept {
     const time_point start = precisionClock::now();
-    begin_measurements[s] = start;
+    begin_measurements[s]  = start;
   }
 
   /*!
@@ -43,8 +42,8 @@ public:
    * and saves it.
    * \param s The name under which the measurement/timer shall be saved.
    */
-  void stop(const std::string &s = "") noexcept {
-    const time_point stop = precisionClock::now();
+  void stop(const std::string& s = "") noexcept {
+    const time_point stop              = precisionClock::now();
     const begin_measurements_it start_ = begin_measurements.find(s);
     if (start_ == begin_measurements.end()) {
       // TODO debugMsg: The timer with name s was never started
@@ -52,8 +51,7 @@ public:
     }
 
     const std::chrono::nanoseconds duration =
-        std::chrono::duration_cast<std::chrono::nanoseconds>(stop -
-                                                             start_->second);
+      std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start_->second);
     measurements[s].emplace_back(duration);
   }
 
@@ -90,9 +88,7 @@ public:
      * \param std_dev The standard deviation of the measurements.
      * \return The computed bucket size.
      */
-    PreciseTime scottsRuleBucketSize(size_t num_values,
-                                     const PreciseTime &std_dev) const
-        noexcept {
+    PreciseTime scottsRuleBucketSize(size_t num_values, const PreciseTime& std_dev) const noexcept {
       const double num_good_values = static_cast<double>(num_values);
       return std_dev * 3.49 * 1. / std::cbrt(num_good_values);
     }
@@ -104,8 +100,9 @@ public:
      * \param max The maximal value/Time the histogram shall display.
      * \return The computed bucket size.
      */
-    void initBuckets(const PreciseTime &bucket_size_, const PreciseTime &min,
-                     const PreciseTime &max) {
+    void initBuckets(const PreciseTime& bucket_size_,
+                     const PreciseTime& min,
+                     const PreciseTime& max) {
       constexpr PreciseTime SMALLEST_BUCKET_SIZE(std::chrono::nanoseconds(1));
       bucket_size = bucket_size_;
       if (bucket_size < SMALLEST_BUCKET_SIZE) {
@@ -113,9 +110,9 @@ public:
       }
       assert(max > min && "Max time lower than min time.");
       const PreciseTime range = max - min;
-      const size_t num_buckets = static_cast<size_t>(
-          ceil(range.toDouble<std::chrono::nanoseconds>() /
-               bucket_size.toDouble<std::chrono::nanoseconds>()));
+      const size_t num_buckets =
+        static_cast<size_t>(ceil(range.toDouble<std::chrono::nanoseconds>() /
+                                 bucket_size.toDouble<std::chrono::nanoseconds>()));
 
       buckets.reserve(num_buckets);
 
@@ -139,43 +136,43 @@ public:
       constexpr size_t NUM_COLORS = 10;
       if (color >= NUM_COLORS) {
         const size_t div = color / NUM_COLORS;
-        color = color - NUM_COLORS * div;
+        color            = color - NUM_COLORS * div;
       }
       const std::string empty_tiles(num_tiles, ' ');
       const std::string end("\033[0m");
       std::string color_s;
       // https://misc.flogisoft.com/bash/tip_colors_and_formatting
       switch (color) {
-      case 0:
-        color_s = std::string("\033[48:5:82:0m"); // light green
-        break;
-      case 1:
-        color_s = std::string("\033[48:5:208:0m"); // orange
-        break;
-      case 2:
-        color_s = std::string("\033[48:5:256:0m"); // white
-        break;
-      case 3:
-        color_s = std::string("\033[48:5:9:0m"); // red
-        break;
-      case 4:
-        color_s = std::string("\033[48:5:249:0m"); // grey
-        break;
-      case 5:
-        color_s = std::string("\033[48:5:11:0m"); // yellow
-        break;
-      case 6:
-        color_s = std::string("\033[48:5:225:0m"); // pink
-        break;
-      case 7:
-        color_s = std::string("\033[48:5:90:0m"); // dark violet
-        break;
-      case 8:
-        color_s = std::string("\033[48:5:45:0m"); // light blue
-        break;
-      case 9:
-        color_s = std::string("\033[48:5:2:0m"); // darker green
-        break;
+        case 0:
+          color_s = std::string("\033[48:5:82:0m");  // light green
+          break;
+        case 1:
+          color_s = std::string("\033[48:5:208:0m");  // orange
+          break;
+        case 2:
+          color_s = std::string("\033[48:5:256:0m");  // white
+          break;
+        case 3:
+          color_s = std::string("\033[48:5:9:0m");  // red
+          break;
+        case 4:
+          color_s = std::string("\033[48:5:249:0m");  // grey
+          break;
+        case 5:
+          color_s = std::string("\033[48:5:11:0m");  // yellow
+          break;
+        case 6:
+          color_s = std::string("\033[48:5:225:0m");  // pink
+          break;
+        case 7:
+          color_s = std::string("\033[48:5:90:0m");  // dark violet
+          break;
+        case 8:
+          color_s = std::string("\033[48:5:45:0m");  // light blue
+          break;
+        case 9:
+          color_s = std::string("\033[48:5:2:0m");  // darker green
+          break;
       }
       return color_s + empty_tiles + end;
     }
@@ -208,7 +205,7 @@ public:
       // [213.0ns - 214.0ns] |######
       // clang-format on
       constexpr size_t BucketSizeInfo = 22;
-      constexpr size_t MAX_LENGT = 50;
+      constexpr size_t MAX_LENGT      = 50;
       return std::max(MAX_LENGT, num_char_terminal_width - BucketSizeInfo);
     }
 
@@ -224,7 +221,7 @@ public:
      * \brief Nice output stream for one Results statistical values. Expects
      * Results to be complete Initiated.
      */
-    void streamOutBaseStatistics(std::ostream &os, const Result &r) const {
+    void streamOutBaseStatistics(std::ostream& os, const Result& r) const {
       os << "###Result of <" << r.timer_name << ">###"
          << "\n"
          << "E{X}: \t  " << r.mean << "\n"
@@ -240,24 +237,22 @@ public:
      * \brief Nice output stream for one Results histogram. Expects Results to
      * be complete Initiated.
      */
-    void streamOutHistogram(std::ostream &os, const Result &r) const {
+    void streamOutHistogram(std::ostream& os, const Result& r) const {
 
       const double smallest_unit =
-          r.h.max_num_in_bucket / static_cast<double>(r.calcPlotSize());
+        r.h.max_num_in_bucket / static_cast<double>(r.calcPlotSize());
       int num_buckets_skipped = 0;
       PreciseTime begin_skip;
       PreciseTime end_skip;
-      auto streamBucketsSkipped = [&os, &num_buckets_skipped, &begin_skip,
-                                   &end_skip]() {
+      auto streamBucketsSkipped = [&os, &num_buckets_skipped, &begin_skip, &end_skip]() {
         os << "[" << begin_skip.getTimeString(3) << " - "
            << end_skip.getTimeString(3) << "] |"
            << "skipped " << num_buckets_skipped << " insignificant bars"
            << "\n";
       };
 
-      for (const auto &bucket : r.h.buckets) {
-        const size_t num_units =
-            static_cast<size_t>(bucket.num / smallest_unit);
+      for (const auto& bucket : r.h.buckets) {
+        const size_t num_units = static_cast<size_t>(bucket.num / smallest_unit);
         if (num_units == 0) {
           if (num_buckets_skipped == 0) {
             begin_skip = bucket.begin;
@@ -285,7 +280,7 @@ public:
      * \brief Implements a clean print for the statistics. Expects Results to be
      * complete Initiated.
      */
-    friend std::ostream &operator<<(std::ostream &os, const Result &r) {
+    friend std::ostream& operator<<(std::ostream& os, const Result& r) {
       r.streamOutBaseStatistics(os, r);
       r.streamOutHistogram(os, r);
       return os;
@@ -295,8 +290,7 @@ public:
      * \brief Implements a clean print for an vector of statistics. Expects
      * Results to be complete Initiated.
      */
-    friend std::ostream &operator<<(std::ostream &os,
-                                    const std::vector<Result> &rs) {
+    friend std::ostream& operator<<(std::ostream& os, const std::vector<Result>& rs) {
       if (rs.size() == 0) {
         return os;
       }
@@ -309,26 +303,25 @@ public:
       // find the minimal bucket size and histogram start/end
       PreciseTime min_bucket_size = PreciseTime::max();
       PreciseTime histogram_start = PreciseTime::max();
-      PreciseTime histogram_end = PreciseTime::zero();
+      PreciseTime histogram_end   = PreciseTime::zero();
       std::vector<size_t> indexes_used;
       for (size_t i = 0; i < rs.size(); ++i) {
-        const Result &r = rs[i];
+        const Result& r = rs[i];
         if (r.h.buckets.size() == 0) {
           continue;
         }
         indexes_used.push_back(i);
         min_bucket_size = std::min(min_bucket_size, r.h.bucket_size);
         histogram_start = std::min(histogram_start, r.h.buckets[0].begin);
-        histogram_end = std::max(histogram_end, r.h.buckets.back().end);
+        histogram_end   = std::max(histogram_end, r.h.buckets.back().end);
       }
 
-      int max_num_in_bucket = 0;
+      int max_num_in_bucket  = 0;
       size_t max_name_length = 0;
       for (size_t i : indexes_used) {
-        const auto &result = rs[i];
+        const auto& result = rs[i];
         result.streamOutBaseStatistics(os, result);
-        max_num_in_bucket =
-            std::max(max_num_in_bucket, result.h.max_num_in_bucket);
+        max_num_in_bucket = std::max(max_num_in_bucket, result.h.max_num_in_bucket);
         max_name_length = std::max(max_name_length, result.timer_name.size());
       }
 
@@ -336,7 +329,7 @@ public:
       constexpr size_t MIN_LEGEND_COLOR_LENGTH = 10;
       size_t legend_color_length = max_name_length + MIN_LEGEND_COLOR_LENGTH;
       for (size_t i : indexes_used) {
-        const auto &result = rs[i];
+        const auto& result  = rs[i];
         const size_t length = legend_color_length - result.timer_name.size();
         os << result.timer_name << Histogram::colorCmdBgTile(i, length) << "\n";
       }
@@ -352,64 +345,60 @@ public:
       temp_histogram.initBuckets(min_bucket_size, histogram_start, histogram_end);
 
       const double smallest_unit =
-          max_num_in_bucket / static_cast<double>(rs[0].calcPlotSize());
+        max_num_in_bucket / static_cast<double>(rs[0].calcPlotSize());
       int num_buckets_skipped = 0;
       PreciseTime begin_skip;
       PreciseTime end_skip;
-      auto streamBucketsSkipped = [&os, &num_buckets_skipped, &begin_skip,
-                                   &end_skip]() {
+      auto streamBucketsSkipped = [&os, &num_buckets_skipped, &begin_skip, &end_skip]() {
         os << "[" << begin_skip.getTimeString(3) << " - "
            << end_skip.getTimeString(3) << "] |"
            << "skipped " << num_buckets_skipped << " insignificant bars"
            << "\n";
       };
 
-      for (const auto &bucket_comb_histo : temp_histogram.buckets) {
+      for (const auto& bucket_comb_histo : temp_histogram.buckets) {
 
         for (size_t i : indexes_used) {
-          const auto &current_buckets = rs[i].h.buckets;
+          const auto& current_buckets = rs[i].h.buckets;
           if (current_bucket[i] >= current_buckets.size()) {
-            number_color[i] =
-                std::pair<size_t, size_t>(0, i); // not drawn anymore
-            continue; // already all values reorganized in h.buckets and printed
+            number_color[i] = std::pair<size_t, size_t>(0, i);  // not drawn anymore
+            continue;  // already all values reorganized in h.buckets and printed
           }
           size_t current_bucket_nr = current_bucket[i];
           // Todo interpolation would be more precise than "fitting the center
           // into the new histogram bucket". But than again, one should use a
           // graphical tool for a precise histogram anyway.
-          const auto &current_bucket_ref = current_buckets[current_bucket_nr];
-          const auto bucket_comb_histo_center =
-              bucket_comb_histo.getBucketCenter();
+          const auto& current_bucket_ref = current_buckets[current_bucket_nr];
+          const auto bucket_comb_histo_center = bucket_comb_histo.getBucketCenter();
 
           if (bucket_comb_histo_center < current_bucket_ref.begin) {
-            number_color[i] = std::pair<size_t, size_t>(0, i); // not drawn
-            continue; // this histogram starts later
+            number_color[i] = std::pair<size_t, size_t>(0, i);  // not drawn
+            continue;  // this histogram starts later
           }
 
           if (bucket_comb_histo_center > current_bucket_ref.end) {
             // we have to increase the current bucket
             current_bucket_nr = ++current_bucket[i];
             if (current_bucket[i] == current_buckets.size()) {
-              number_color[i] =
-                  std::pair<size_t, size_t>(0, i); // not drawn anymore
-              continue; // we are at the end, no more buckets in
-                        // current_buckets;
+              number_color[i] = std::pair<size_t, size_t>(0, i);  // not drawn anymore
+              continue;  // we are at the end, no more buckets in
+                         // current_buckets;
             }
           }
           // the current_bucket and bucket_comb_histo are aligned, we save
           // number and index.
-          number_color[i] = std::pair<size_t, size_t>(
-              current_buckets[current_bucket_nr].num, i);
+          number_color[i] =
+            std::pair<size_t, size_t>(current_buckets[current_bucket_nr].num, i);
         }
 
         sort(number_color.begin(), number_color.end());
         size_t current_cursor_position = 0;
         std::string data("");
-        for (const auto &nc : number_color) {
+        for (const auto& nc : number_color) {
           const size_t num_units =
-              static_cast<size_t>(static_cast<double>(nc.first) / smallest_unit);
+            static_cast<size_t>(static_cast<double>(nc.first) / smallest_unit);
           if (current_cursor_position == num_units) {
-            continue; // skip this, we cannot print two colors onto each other
+            continue;  // skip this, we cannot print two colors onto each other
           }
           const size_t cursor_diff = num_units - current_cursor_position;
           data += Histogram::colorCmdBgTile(nc.second, cursor_diff);
@@ -445,11 +434,11 @@ public:
     PreciseTime median;
     PreciseTime mean;
     PreciseTime standard_derivation = PreciseTime::max();
-    size_t number_measurements = 0;
-    size_t number_outliners = 0;
-    double outliner_range = 3.5;
-    size_t num_char_terminal_width = 80;
-    std::vector<char> is_outliner;
+    size_t number_measurements      = 0;
+    size_t number_outliners         = 0;
+    double outliner_range           = 3.5;
+    size_t num_char_terminal_width  = 80;
+    std::vector<bool> is_outliner;
     Histogram h;
   };
 
@@ -464,8 +453,7 @@ public:
    * \return false if the name of the
    * given timer doesn't exist or has less than 3 measurements.
    */
-  bool getResult(const std::string &name, Result &result,
-                 bool sort_measurements = true) noexcept {
+  bool getResult(const std::string& name, Result& result, bool sort_measurements = true) noexcept {
 
     const auto timer = measurements.find(name);
     if (timer == measurements.end()) {
@@ -477,7 +465,7 @@ public:
       return false;
     }
 
-    result.is_outliner = std::vector<char>(result.number_measurements, false);
+    result.is_outliner = std::vector<bool>(result.number_measurements, false);
 
     if (sort_measurements) {
       result.median = findMedian(timer->second);
@@ -488,20 +476,20 @@ public:
     auto setMean = [&timer, &result]() {
       PreciseTime sum;
       for (size_t i = 0; i < result.number_measurements; ++i) {
-        const auto &measurement = timer->second[i];
+        const auto& measurement = timer->second[i];
         if (!result.is_outliner[i]) {
           sum += measurement;
         }
       }
       result.mean =
-          sum / static_cast<double>(result.number_measurements - result.number_outliners);
+        sum / static_cast<double>(result.number_measurements - result.number_outliners);
     };
 
     auto setMinMax = [&timer, &result]() {
       result.max_measurement = PreciseTime::min();
       result.min_measurement = PreciseTime::max();
       for (size_t i = 0; i < result.number_measurements; ++i) {
-        const auto &measurement = timer->second[i];
+        const auto& measurement = timer->second[i];
         if (!result.is_outliner[i]) {
           if (measurement > result.max_measurement) {
             result.max_measurement = measurement;
@@ -518,14 +506,15 @@ public:
       PreciseTime var_sum;
       var_sum.setExponent(2);
       for (size_t i = 0; i < result.number_measurements; ++i) {
-        const auto &measurement = timer->second[i];
+        const auto& measurement = timer->second[i];
         if (!result.is_outliner[i]) {
-          const PreciseTime diff_pt = measurement - result.mean;
-          var_sum += diff_pt * diff_pt;
+          const PreciseTime diff_pt  = measurement - result.mean;
+          var_sum                   += diff_pt * diff_pt;
         }
       }
       PreciseTime variance =
-          var_sum / static_cast<double>(result.number_measurements - result.number_outliners - 1);
+        var_sum /
+        static_cast<double>(result.number_measurements - result.number_outliners - 1);
       variance.sqrt();
       result.standard_derivation = variance;
     };
@@ -534,29 +523,27 @@ public:
       const auto dev_range = result.standard_derivation * result.outliner_range;
       const auto outliner_distance_top = result.mean + dev_range;
       const auto outliner_distance_bot = result.mean - dev_range;
-      size_t num_outliners = 0;
+      size_t num_outliners             = 0;
       for (size_t i = 0; i < result.number_measurements; ++i) {
-        const auto &measurement = timer->second[i];
-        const bool is_otliner = (measurement < outliner_distance_bot ||
-                                 outliner_distance_top < measurement);
-        result.is_outliner[i] = is_otliner;
-        num_outliners += is_otliner ? 1 : 0;
+        const auto& measurement = timer->second[i];
+        const bool is_otliner =
+          (measurement < outliner_distance_bot || outliner_distance_top < measurement);
+        result.is_outliner[i]  = is_otliner;
+        num_outliners         += is_otliner ? 1 : 0;
       }
       result.number_outliners = num_outliners;
     };
 
     auto setHistogram = [&timer, &result]() {
-      const size_t number_values =
-          result.number_measurements - result.number_outliners;
-      const auto bucket_size = result.h.scottsRuleBucketSize(
-          number_values, result.standard_derivation);
-      result.h.initBuckets(bucket_size, result.min_measurement,
-                           result.max_measurement);
+      const size_t number_values = result.number_measurements - result.number_outliners;
+      const auto bucket_size =
+        result.h.scottsRuleBucketSize(number_values, result.standard_derivation);
+      result.h.initBuckets(bucket_size, result.min_measurement, result.max_measurement);
 
       for (size_t i = 0; i < result.number_measurements; ++i) {
-        const auto &measurement = timer->second[i];
+        const auto& measurement = timer->second[i];
         if (!result.is_outliner[i]) {
-          for (auto &bucket : result.h.buckets) {
+          for (auto& bucket : result.h.buckets) {
             if (bucket.begin <= measurement && measurement <= bucket.end) {
               bucket.num++;
               break;
@@ -565,9 +552,8 @@ public:
         }
       }
 
-      for (const auto &bucket : result.h.buckets) {
-        result.h.max_num_in_bucket =
-            std::max(result.h.max_num_in_bucket, bucket.num);
+      for (const auto& bucket : result.h.buckets) {
+        result.h.max_num_in_bucket = std::max(result.h.max_num_in_bucket, bucket.num);
       }
     };
 
@@ -599,8 +585,8 @@ public:
    * \brief Calculates for all saved measurments/timers the statistics and
    * prints them.
    */
-  friend std::ostream &operator<<(std::ostream &os, CollectingTimer &t) {
-    for (const auto &timer : t.measurements) {
+  friend std::ostream& operator<<(std::ostream& os, CollectingTimer& t) {
+    for (const auto& timer : t.measurements) {
       Result r;
       t.getResult(timer.first, r);
       os << "Timer: " << timer.first << std::endl << r << "\n";
@@ -619,7 +605,7 @@ public:
    * \return true if writeing was successfull.
    */
   template <class T>
-  bool measurementsToFile(const std::string &file_name, char seperator) {
+  bool measurementsToFile(const std::string& file_name, char seperator) {
 
     const size_t num_timers = measurements.size();
     if (num_timers == 0) {
@@ -632,29 +618,28 @@ public:
       return false;
     }
 
-    auto inputIntoFile = [&file](std::string &input_line) {
+    auto inputIntoFile = [&file](std::string& input_line) {
       input_line.pop_back();
       input_line += "\n";
-      std::copy(input_line.begin(), input_line.end(),
-                std::ostream_iterator<char>(file));
+      std::copy(input_line.begin(), input_line.end(), std::ostream_iterator<char>(file));
       input_line = "";
     };
 
     size_t max_num_measurements = 0;
-    std::string input_line = "";
-    for (const auto &timer : measurements) {
-      input_line += timer.first + seperator;
-      const size_t num_measurements = timer.second.size();
+    std::string input_line      = "";
+    for (const auto& timer : measurements) {
+      input_line                    += timer.first + seperator;
+      const size_t num_measurements  = timer.second.size();
       max_num_measurements = std::max(num_measurements, max_num_measurements);
     }
 
     inputIntoFile(input_line);
 
     for (size_t m = 0; m < max_num_measurements; m++) {
-      for (const auto &timer : measurements) {
+      for (const auto& timer : measurements) {
         if (timer.second.size() > m) {
-          const double val = timer.second[m].toDouble<T>();
-          input_line += std::to_string(val) + seperator;
+          const double val  = timer.second[m].toDouble<T>();
+          input_line       += std::to_string(val) + seperator;
         } else {
           input_line += seperator;
         }
@@ -676,7 +661,7 @@ public:
    * \return true if writeing was successfull.
    */
   template <class T>
-  bool histogramToFile(const std::string &file_name, char seperator) {
+  bool histogramToFile(const std::string& file_name, char seperator) {
 
     const size_t num_timers = measurements.size();
     if (num_timers == 0) {
@@ -685,7 +670,7 @@ public:
 
     std::vector<Result> results(num_timers);
     size_t i = 0;
-    for (const auto &timer : measurements) {
+    for (const auto& timer : measurements) {
       getResult(timer.first, results[i++]);
     }
 
@@ -696,32 +681,30 @@ public:
     }
 
     std::string input_line = "";
-    auto inputIntoFile = [&file, &input_line]() {
+    auto inputIntoFile     = [&file, &input_line]() {
       input_line.pop_back();
       input_line += "\n";
-      std::copy(input_line.begin(), input_line.end(),
-                std::ostream_iterator<char>(file));
+      std::copy(input_line.begin(), input_line.end(), std::ostream_iterator<char>(file));
       input_line = "";
     };
 
     size_t max_num_buckets = 0;
-    for (const auto &result : results) {
+    for (const auto& result : results) {
       input_line += result.timer_name + " bucket" + seperator +
                     result.timer_name + " count" + seperator;
       const size_t num_buckets = result.h.buckets.size();
-      max_num_buckets = std::max(max_num_buckets, num_buckets);
+      max_num_buckets          = std::max(max_num_buckets, num_buckets);
     }
     inputIntoFile();
 
     for (size_t b = 0; b < max_num_buckets; b++) {
-      for (const auto &result : results) {
+      for (const auto& result : results) {
         if (result.h.buckets.size() > b) {
-          const Histogram::Bucket &bucket = result.h.buckets[b];
+          const Histogram::Bucket& bucket = result.h.buckets[b];
           const double val = bucket.getBucketCenter().toDouble<T>();
           const double normed_value =
-              static_cast<double>(bucket.num) /
-              static_cast<double>(result.number_measurements -
-                                  result.number_outliners);
+            static_cast<double>(bucket.num) /
+            static_cast<double>(result.number_measurements - result.number_outliners);
           input_line += std::to_string(val) + seperator +
                         std::to_string(normed_value) + seperator;
         } else {
@@ -734,8 +717,8 @@ public:
     return file.bad();
   }
 
-private:
-  PreciseTime findMedian(std::vector<PreciseTime> &values) noexcept {
+ private:
+  PreciseTime findMedian(std::vector<PreciseTime>& values) noexcept {
     // https://www.geeksforgeeks.org/finding-median-of-unsorted-array-in-linear-time-using-c-stl/
     const long int n = static_cast<long int>(values.size());
 
@@ -753,7 +736,7 @@ private:
       // Find the average of value at
       // index N/2 and (N-1)/2
       const size_t right_mid_index = static_cast<size_t>(n / 2);
-      const size_t left_mid_index = right_mid_index - 1;
+      const size_t left_mid_index  = right_mid_index - 1;
       return (values[left_mid_index] + values[right_mid_index]) / 2.0;
     }
 
