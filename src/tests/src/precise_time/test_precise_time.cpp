@@ -17,6 +17,8 @@ using h  = std::chrono::hours;
 
 
 static constexpr size_t NUM_TESTS = 6;
+
+namespace {
 static void test_for_all_times(const PreciseTime& pt,
                                const std::array<int64_t, NUM_TESTS>& times) {
   const auto pt_times = pt.getSeperatedTimeComponents();
@@ -24,6 +26,7 @@ static void test_for_all_times(const PreciseTime& pt,
   for (size_t i = 0; i < times.size(); i++) {
     REQUIRE(pt_times[i] == times[i]);  // NOLINT cppcoreguidelines-pro-bounds-constant-array-index // trust in the test
   }
+}
 }
 
 TEST_CASE("test_precise_time_class_min_max_rollover") {

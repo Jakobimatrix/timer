@@ -1,25 +1,2 @@
-
-if (TARGET Catch2::Catch2WithMain)
-
-  add_executable(test_precise_time src/test_precise_time.cpp)
-  add_executable(test_timer src/test_timings.cpp)
-
-  target_link_libraries(test_timer 
-    PRIVATE
-    Catch2::Catch2WithMain
-    timer_lib_1.0.0
-    ${ENVIRONMENT_SETTINGS}
-    )
-
-    target_link_libraries(test_precise_time 
-    PRIVATE
-    Catch2::Catch2WithMain
-    timer_lib_1.0.0
-    ${ENVIRONMENT_SETTINGS}
-    )
-
-  catch_discover_tests(test_precise_time)
-  catch_discover_tests(test_timer)
-
-
-endif()
+add_catch_test(${CMAKE_CURRENT_SOURCE_DIR}/src/precise_time timer_lib_1.0.0 ${ENVIRONMENT_SETTINGS})
+add_catch_test(${CMAKE_CURRENT_SOURCE_DIR}/src/timer timer_lib_1.0.0 ${ENVIRONMENT_SETTINGS})
