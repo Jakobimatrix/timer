@@ -1,3 +1,12 @@
+/**
+ * @file test_timings.cpp
+ * @brief contains the unit tests using catch2 for the timer classes: CollectingTimer, FrameTimer
+ *
+ * @date 30.08.2025
+ * @author Jakob Wandel
+ * @version 1.0
+ **/
+
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_message.hpp>
 

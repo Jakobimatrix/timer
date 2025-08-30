@@ -1,3 +1,12 @@
+/**
+ * @file example_timer.cpp
+ * @brief contains the entrance to a executable demonstrating the FrameTimer class
+ *
+ * @date 30.08.2025
+ * @author Jakob Wandel
+ * @version 1.0
+ **/
+
 #include <chrono>
 #include <cmath>
 #include <timer/frame_timer.hpp>

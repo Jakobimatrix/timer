@@ -1,12 +1,11 @@
-/*
- * \file: scoped_timer.hpp
- * \brief: Implements a scoped timer wich will stop automatically on destruction
+/**
+ * @file scoped_timer.hpp
+ * @brief Implements a scoped timer wich will stop automatically on destruction
  * and reports via callback function.
- * \date: 12.11.2021
- * \author: Jakob Wandel
- * \source: https://github.com/Jakobimatrix/timer
- * \version: 1.0
- */
+ * @date 12.11.2021
+ * @author Jakob Wandel
+ * @version 1.0
+ **/
 
 #ifndef SCOPED_TIMER_H
 #define SCOPED_TIMER_H
@@ -15,7 +14,7 @@
 #include <functional>
 
 /*!
- * \brief A Scoped timer. It will start recording on creation and stop recording
+ * @brief A Scoped timer. It will start recording on creation and stop recording
  * on destruction. The recorded time will be reported via a given callback
  * function.
  */
@@ -25,9 +24,9 @@ class ScopedTimer {
     std::function<void(const std::string&, const PreciseTime::PrecisionClock::time_point&, const PreciseTime& time)>;
 
   /*!
-   * \brief Constructor, Starts timer.
-   * \param name The name of the timer.
-   * \param report_back_callback A callbackfunction of Type
+   * @brief Constructor, Starts timer.
+   * @param name The name of the timer.
+   * @param report_back_callback A callbackfunction of Type
    * ScopedTimer::reportBack which will be called on destruction reporting the
    * time and the name.
    */
@@ -37,8 +36,8 @@ class ScopedTimer {
         report_back(report_back_callback) {}
 
   /*!
-   * \brief Constructor, Starts timer. WHen the timer ends it will automatically print the timeing via cout.
-   * \param name The name of the timer.
+   * @brief Constructor, Starts timer. WHen the timer ends it will automatically print the timeing via cout.
+   * @param name The name of the timer.
    */
   ScopedTimer(const std::string& timer_name)
       : name(timer_name),

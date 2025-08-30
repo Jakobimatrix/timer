@@ -1,3 +1,12 @@
+/**
+ * @file test_precise_time.cpp
+ * @brief contains the unit tests using catch2 for the PreciseTime class
+ *
+ * @date 30.08.2025
+ * @author Jakob Wandel
+ * @version 1.0
+ **/
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <timer/precise_time.hpp>

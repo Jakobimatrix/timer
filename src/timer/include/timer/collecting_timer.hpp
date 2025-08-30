@@ -1,14 +1,13 @@
-/*
- * \file: collecting_timer.hpp
- * \brief: Implements a timer which is able to run multiple named timers and
+/**
+ * @file collecting_timer.hpp
+ * @brief Implements a timer which is able to run multiple named timers and
  * store multiple runns of these named timers. The results can be written into a
  * .csv file as a time series or as a histogram for further analysis. There is
  * also a rudimentary console logging function.
- * \date: 17.07.2021
- * \author: Jakob Wandel
- * \source: https://github.com/Jakobimatrix/timer
- * \version: 2.0
- */
+ * @date 17.07.2021
+ * @author Jakob Wandel
+ * @version 2.0
+ **/
 
 #ifndef COLLECTING_TIMER_H
 #define COLLECTING_TIMER_H
@@ -29,8 +28,8 @@ class CollectingTimer {
   }
 
   /*!
-   * \brief start starts a new measurement.
-   * \param s The name under which the measurement/timer shall be saved.
+   * @brief start starts a new measurement.
+   * @param s The name under which the measurement/timer shall be saved.
    */
   void start(const std::string& s = "") noexcept {
     const time_point start = precisionClock::now();
@@ -38,9 +37,9 @@ class CollectingTimer {
   }
 
   /*!
-   * \brief Stops a started measurement, computes the time since start()
+   * @brief Stops a started measurement, computes the time since start()
    * and saves it.
-   * \param s The name under which the measurement/timer shall be saved.
+   * @param s The name under which the measurement/timer shall be saved.
    */
   void stop(const std::string& s = "") noexcept {
     const time_point stop              = precisionClock::now();
@@ -56,12 +55,12 @@ class CollectingTimer {
   }
 
   /*!
-   * \brief Struckt to hold information about a Histogram.
+   * @brief Struckt to hold information about a Histogram.
    */
   struct Histogram {
 
     /*!
-     * \brief Struckt to store information about how much measurements fall into
+     * @brief Struckt to store information about how much measurements fall into
      * a Range = Bucket.
      */
     struct Bucket {
@@ -70,8 +69,8 @@ class CollectingTimer {
       int num = 0;
 
       /*!
-       * \brief Calculates the time between in the center of the bucket/Range.
-       * \return a PreciseTime: The center of the bucket.
+       * @brief Calculates the time between in the center of the bucket/Range.
+       * @return a PreciseTime: The center of the bucket.
        */
       PreciseTime getBucketCenter() const noexcept {
         return (end - begin) / 2. + begin;
@@ -83,10 +82,10 @@ class CollectingTimer {
     int max_num_in_bucket = 0;
 
     /*!
-     * \brief Calculates the bucket size according to Scott's Rule.
-     * \param num_values Number of measurements
-     * \param std_dev The standard deviation of the measurements.
-     * \return The computed bucket size.
+     * @brief Calculates the bucket size according to Scott's Rule.
+     * @param num_values Number of measurements
+     * @param std_dev The standard deviation of the measurements.
+     * @return The computed bucket size.
      */
     PreciseTime scottsRuleBucketSize(size_t num_values, const PreciseTime& std_dev) const noexcept {
       const double num_good_values = static_cast<double>(num_values);
@@ -94,11 +93,11 @@ class CollectingTimer {
     }
 
     /*!
-     * \brief Initiates the inner vector of Buckets to be ready to input values.
-     * \param bucket_size_ The size of one Bucket in the histogram.
-     * \param min The minimal value/Time the histogram shall display.
-     * \param max The maximal value/Time the histogram shall display.
-     * \return The computed bucket size.
+     * @brief Initiates the inner vector of Buckets to be ready to input values.
+     * @param bucket_size_ The size of one Bucket in the histogram.
+     * @param min The minimal value/Time the histogram shall display.
+     * @param max The maximal value/Time the histogram shall display.
+     * @return The computed bucket size.
      */
     void initBuckets(const PreciseTime& bucket_size_,
                      const PreciseTime& min,
@@ -126,10 +125,13 @@ class CollectingTimer {
     }
 
     /*!
-     * \brief Returns a number of white spaces in a speciffic color. Works only
-     * in Linux shell. \param color A number for different color output (e.g.
-     * the position in an array). \param num_tiles The number of spaces to be
-     * colored. \return A string with num_tiles spaces with the command to color
+     * @brief Returns a number of white spaces in a speciffic color. Works only
+     * in Linux shell.
+     * @param color A number for different color output (e.g.
+     * the position in an array).
+     * @param num_tiles The number of spaces to be
+     * colored.
+     * @return A string with num_tiles spaces with the command to color
      * these spaces.
      */
     static std::string colorCmdBgTile(size_t color, size_t num_tiles) {
@@ -179,12 +181,12 @@ class CollectingTimer {
   };
 
   /*!
-   * \brief Struct to bundel the results of N measurements.
+   * @brief Struct to bundel the results of N measurements.
    */
   struct Result {
 
     /*!
-     * \brief Set the range for the outliner detection: Every measurement
+     * @brief Set the range for the outliner detection: Every measurement
      * smaller than mean - dev*n_times_deviation and greater than mean -
      * dev*n_times_deviation is considdered to be an outliner. n_times_deviation
      * the range for the outliner detection. Default is 3.5 which is more
@@ -196,7 +198,7 @@ class CollectingTimer {
     }
 
     /*!
-     * \brief Helper function to calculate the maximal size of character in the
+     * @brief Helper function to calculate the maximal size of character in the
      * cmd plot, depending on num_char_terminal_width
      */
     size_t calcPlotSize() const noexcept {
@@ -210,7 +212,7 @@ class CollectingTimer {
     }
 
     /*!
-     * \brief Sets the width of the terminal for the drawing of the histogram.
+     * @brief Sets the width of the terminal for the drawing of the histogram.
      * Default is 80 characters.
      */
     void setCharWidthOfTerminal(size_t terminal_width) noexcept {
@@ -218,7 +220,7 @@ class CollectingTimer {
     }
 
     /*!
-     * \brief Nice output stream for one Results statistical values. Expects
+     * @brief Nice output stream for one Results statistical values. Expects
      * Results to be complete Initiated.
      */
     void streamOutBaseStatistics(std::ostream& os, const Result& r) const {
@@ -234,7 +236,7 @@ class CollectingTimer {
     }
 
     /*!
-     * \brief Nice output stream for one Results histogram. Expects Results to
+     * @brief Nice output stream for one Results histogram. Expects Results to
      * be complete Initiated.
      */
     void streamOutHistogram(std::ostream& os, const Result& r) const {
@@ -277,7 +279,7 @@ class CollectingTimer {
     }
 
     /*!
-     * \brief Implements a clean print for the statistics. Expects Results to be
+     * @brief Implements a clean print for the statistics. Expects Results to be
      * complete Initiated.
      */
     friend std::ostream& operator<<(std::ostream& os, const Result& r) {
@@ -287,7 +289,7 @@ class CollectingTimer {
     }
 
     /*!
-     * \brief Implements a clean print for an vector of statistics. Expects
+     * @brief Implements a clean print for an vector of statistics. Expects
      * Results to be complete Initiated.
      */
     friend std::ostream& operator<<(std::ostream& os, const std::vector<Result>& rs) {
@@ -443,14 +445,14 @@ class CollectingTimer {
   };
 
   /*!
-   * \brief getResult Calculates for the given timer the statics.
+   * @brief getResult Calculates for the given timer the statics.
    * ! Statistics only make much sense if you have more than 1000 measurements!
-   * \param name The name of the timer the statistics shall be calculated for.
-   * \param result Will contain the statistical data
-   * \param sort_measurements To calculate the median, the measurements must be
+   * @param name The name of the timer the statistics shall be calculated for.
+   * @param result Will contain the statistical data
+   * @param sort_measurements To calculate the median, the measurements must be
    * sorted. If you want to keep the measurements in the order they where
    * recorded, you have to set this to false.
-   * \return false if the name of the
+   * @return false if the name of the
    * given timer doesn't exist or has less than 3 measurements.
    */
   bool getResult(const std::string& name, Result& result, bool sort_measurements = true) noexcept {
@@ -582,7 +584,7 @@ class CollectingTimer {
   }
 
   /*!
-   * \brief Calculates for all saved measurments/timers the statistics and
+   * @brief Calculates for all saved measurments/timers the statistics and
    * prints them.
    */
   friend std::ostream& operator<<(std::ostream& os, CollectingTimer& t) {
@@ -595,14 +597,14 @@ class CollectingTimer {
   }
 
   /*!
-   * \brief Writes all measurements from all timers into the given file
+   * @brief Writes all measurements from all timers into the given file
    * (appends) for further analysis with Excel or Matlab.
-   * \template a std::chrono duration in which the time (as double values)
+   * @tparam T a std::chrono duration in which the time (as double values)
    * should be printed.
-   * \param file_name The name of the file to write into. If its a path, the
+   * @param file_name The name of the file to write into. If its a path, the
    * path must exist.
-   * \param seperator A character to seperate the input fields.
-   * \return true if writeing was successfull.
+   * @param seperator A character to seperate the input fields.
+   * @return true if writeing was successfull.
    */
   template <class T>
   bool measurementsToFile(const std::string& file_name, char seperator) {
@@ -651,14 +653,14 @@ class CollectingTimer {
   }
 
   /*!
-   * \brief Writes the histogramms of all measurements from all timers into the
+   * @brief Writes the histogramms of all measurements from all timers into the
    * given file (appends) for further analysis with Excel or Matlab.
-   * \template a std::chrono duration in which the time (as double values)
+   * @tparam T a std::chrono duration in which the time (as double values)
    * should be printed.
-   * \param file_name The name of the file to write into. If its a path, the
+   * @param file_name The name of the file to write into. If its a path, the
    * path must exist.
-   * \param seperator A character to seperate the input fields.
-   * \return true if writeing was successfull.
+   * @param seperator A character to seperate the input fields.
+   * @return true if writeing was successfull.
    */
   template <class T>
   bool histogramToFile(const std::string& file_name, char seperator) {

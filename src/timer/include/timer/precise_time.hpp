@@ -1,11 +1,10 @@
-/*
- * \file: precise_time.hpp
- * \brief: Implements the PreciseTime class useing std::chrono.
- * \date: 11.05.2025
- * \author: Jakob Wandel
- * \source: https://github.com/Jakobimatrix/timer
- * \version: 3.0
- */
+/**
+ * @file precise_time.hpp
+ * @brief Implements the PreciseTime class useing std::chrono.
+ * @date 11.05.2025
+ * @author Jakob Wandel
+ * @version 3.0
+ **/
 
 #ifndef PRECISE_TIME_H
 #define PRECISE_TIME_H

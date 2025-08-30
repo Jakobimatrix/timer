@@ -1,13 +1,12 @@
-/*
- * \file: frame_timer.hpp
- * \brief: Implements a timer that accumulates the timings of (same) named
+/**
+ * @file frame_timer.hpp
+ * @brief Implements a timer that accumulates the timings of (same) named
  * timers within a Thread/Loop for each frame. Accumulated times will be  saved
  * and resetted after each fram/loopstart.
- * \date: 12.11.2021
- * \author: Jakob Wandel
- * \source: https://github.com/Jakobimatrix/timer
- * \version: 1.0
- */
+ * @date 12.11.2021
+ * @author Jakob Wandel
+ * @version 1.0
+ **/
 
 #ifndef FRAME_TIMER_H
 #define FRAME_TIMER_H
@@ -31,7 +30,7 @@ class FrameTimer {
   };
 
   /*!
-   * \brief Must be called on each cycle start to reset the akkumulated timers.
+   * @brief Must be called on each cycle start to reset the akkumulated timers.
    */
   template <bool debug_to_console = false>
   void frameStart() {
@@ -59,23 +58,23 @@ class FrameTimer {
   }
 
   /*!
-   * \brief Start a scoped timer. The results/timings will be collected on
+   * @brief Start a scoped timer. The results/timings will be collected on
    * destruction automatically.
-   * \return A ScopedTimer
+   * @return A ScopedTimer
    */
   [[nodiscard]] ScopedTimer startScopedTimer(const std::string& name) {
     return ScopedTimer(name, report_back);
   }
 
   /*!
-   * \brief Writes all measurements from all timers into the given file
+   * @brief Writes all measurements from all timers into the given file
    * (appends) for further analysis with Excel or Matlab.
-   * \template a std::chrono duration in which the time (as double values)
+   * @tparam T a std::chrono duration in which the time (as double values)
    * should be printed.
-   * \param file_name The name of the file to write into. If its a path, the
+   * @param file_name The name of the file to write into. If its a path, the
    * path must exist.
-   * \param seperator A character to seperate the input fields.
-   * \return true if writeing was successfull.
+   * @param seperator A character to seperate the input fields.
+   * @return true if writeing was successfull.
    */
   template <class T>
   bool measurementsToFile(const std::string& file_name, char seperator) {
@@ -150,9 +149,9 @@ class FrameTimer {
 
  private:
   /*!
-   * \brief Callback for all Started ScopedTimers. Collects the results of them.
-   * \param name The name of the Timer.
-   * \param timing The result of the timer.
+   * @brief Callback for all Started ScopedTimers. Collects the results of them.
+   * @param name The name of the Timer.
+   * @param timing The result of the timer.
    */
   void reportBack(const std::string& name,
                   const PreciseTime::PrecisionClock::time_point& start,
@@ -170,7 +169,7 @@ class FrameTimer {
   }
 
   /*!
-   * \brief From the last frame, print 3 longest running timers in % and frame
+   * @brief From the last frame, print 3 longest running timers in % and frame
    * time.
    */
   void debug2Console() const {
