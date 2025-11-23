@@ -22,7 +22,7 @@ using us = std::chrono::microseconds;
 using ms = std::chrono::milliseconds;
 using s  = std::chrono::seconds;
 using m  = std::chrono::minutes;
-using h  = std::chrono::hours;
+using h  = std::chrono::hours64;
 
 
 static constexpr size_t NUM_TESTS = 6;

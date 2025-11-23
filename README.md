@@ -19,6 +19,9 @@ This is a header only library:
  * either include the files located in `src/timer/include/timer` directly
  * or use CMake and just include this projects root `CMakeLists.txt` and add the `timer_lib_0.0.1` with target_link_libraries
 
+## Caviat
+To get reproducable results on all systems across linux and windows 64 bit and 32 bit you have to use std::chrono::hour64 not std::chrono::hour
+
 ## run the tests
 `./build.sh -r -t`
  
@@ -83,7 +86,7 @@ int main() {
   using ms = std::chrono::milliseconds;
   using s = std::chrono::seconds;
   using m = std::chrono::minutes;
-  using h = std::chrono::hours;
+  using h = std::chrono::hours64;
 
   // construction
   PreciseTime my_time1(ns(987654321));

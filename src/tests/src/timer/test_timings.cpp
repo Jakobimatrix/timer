@@ -27,7 +27,7 @@ using us = std::chrono::microseconds;
 using ms = std::chrono::milliseconds;
 using s  = std::chrono::seconds;
 using m  = std::chrono::minutes;
-using h  = std::chrono::hours;
+using h  = std::chrono::hours64;
 
 
 static void test_for_result(const CollectingTimer::Result& timer_result,  // NOLINT readability-function-cognitive-complexity // Happens inn big tests
