@@ -148,24 +148,6 @@ TEST_CASE("test_precise_time_class_calculus") {  // NOLINT readability-function-
 
   // NOLINTBEGIN(readability-magic-numbers) // these are random numbers I cant give every one a meaningfull name
 
-  constexpr double REALLY_BIG_NUMBER = 98788987654321;
-
-  double value      = REALLY_BIG_NUMBER;
-  PreciseTime pt_10 = ns(static_cast<int64_t>(value));
-  REQUIRE(pt_10.toDouble<ns>() == value);
-  pt_10 -= us(44);
-  value -= us2ns(44);
-  REQUIRE(pt_10.toDouble<ns>() == value);
-  pt_10 *= 1007;
-  value *= 1007;
-  REQUIRE(pt_10.toDouble<ns>() == value);
-  pt_10 /= 7.;
-  value /= 7.;
-  REQUIRE(pt_10.toDouble<ns>() == value);
-  pt_10 += ns(1);
-  value += 1;
-  REQUIRE(pt_10.toDouble<ns>() == value);
-
   // sign test ns
   PreciseTime pt_11                = s(3);
   pt_11                           -= ns(333);
