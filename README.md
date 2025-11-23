@@ -10,6 +10,15 @@ Please use clang-tidy if you want to contribute: [easy installation](https://git
  - OS: Ubuntu 24.04
  - compiler: clang 19, gcc 13
  - debug + release
+ - 32 bit && 64 bit
+ - tests
+
+[![Windows C/C++ CI](https://github.com/Jakobimatrix/timer/actions/workflows/windows_build_test.yml/badge.svg)](https://github.com/Jakobimatrix/timer/actions/workflows/windows_build_test.yml)
+
+ - OS: windows-latest
+ - compiler: clang-latest, gcc-latest, msvc-latest
+ - debug + release
+ - 32 bit && 64 bit
  - tests
 
  ---
