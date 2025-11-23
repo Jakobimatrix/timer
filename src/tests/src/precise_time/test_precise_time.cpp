@@ -249,7 +249,7 @@ TEST_CASE("test_precise_time_class_test_to_string") {  // NOLINT readability-fun
   constexpr PreciseTime one_ms = std::chrono::milliseconds(1);
   constexpr PreciseTime one_s  = std::chrono::seconds(1);
   constexpr PreciseTime one_m  = std::chrono::minutes(1);
-  constexpr PreciseTime one_h  = std::chrono::hours(1);
+  constexpr PreciseTime one_h  = std::chrono::hours64(1);
 
   REQUIRE(one_ns.getTimeString(0) == "1ns");
   REQUIRE(one_us.getTimeString(1) == "1.0us");
