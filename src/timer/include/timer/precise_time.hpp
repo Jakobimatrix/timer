@@ -1251,10 +1251,6 @@ class PreciseTime {
 
   constexpr bool operator!=(const PreciseTime& pt) const noexcept {
     return !(*this == pt);
-    return (hours == pt.hours && seconds == pt.seconds &&
-            (nano_seconds != pt.nano_seconds) && (nano_seconds < pt.nano_seconds)) ||
-           (hours == pt.hours && seconds != pt.seconds && seconds < pt.seconds) ||
-           ((hours != pt.hours) && (hours < pt.hours));
   }
 
   constexpr bool operator<(const PreciseTime& pt) const noexcept {
