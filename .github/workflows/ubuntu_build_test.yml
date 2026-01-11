@@ -148,7 +148,7 @@ jobs:
     strategy:
       matrix:
         compiler: [gcc, clang]
-        build_type: [debug, release]
+        build_type: [o1debug, release]
         arch: [x86, x64]
     steps:
       - uses: actions/download-artifact@v4
@@ -157,6 +157,27 @@ jobs:
           path: .
       
       - run: |
+          # Only enable -g for x64 o1debug builds on gcc for code coverage for unit tests
+          COVERAGE_FLAG=""
+          if [[ "${{ matrix.compiler }}" == "gcc" && "${{ matrix.build_type }}" == "o1debug" && "${{ matrix.arch }}" == "x64" ]]; then
+            COVERAGE_FLAG="-g"
+          fi
+
+          COMPILER_FLAG="--compiler gcc"
+          if [ "${{ matrix.compiler }}" = "clang" ]; then
+            COMPILER_FLAG="--compiler clang"
+          fi
+
+          OPTIMIZATION_FLAG="-d"
+          if [ "${{ matrix.build_type }}" = "release" ]; then
+            OPTIMIZATION_FLAG="-r"
+          fi
+
+          FUZZER_FLAG=""
+          if [[ "${{ matrix.compiler }}" == "clang" && "${{ matrix.build_type }}" == "o1debug" ]]; then
+            FUZZER_FLAG="-f"
+          fi
+
           set -e
           tar -xzf workspace.tar.gz -C .
           source initRepo/.environment
@@ -189,16 +210,12 @@ jobs:
             ensure_tool_versioned clang "${CLANG_VERSION}"
           fi
           sudo apt-get install -y cmake make
+
+          echo "./initRepo/scripts/build.sh -t --arch ${{ matrix.arch }} ${COMPILER_FLAG} ${OPTIMIZATION_FLAG} ${COVERAGE_FLAG} ${FUZZER_FLAG}"
+          ./initRepo/scripts/build.sh -t --arch ${{ matrix.arch }} ${COMPILER_FLAG} ${OPTIMIZATION_FLAG} ${COVERAGE_FLAG} ${FUZZER_FLAG}
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
-            if [ "${{ matrix.build_type }}" = "debug" ]; then
-                ./initRepo/scripts/build.sh -d -t -g --compiler gcc --arch ${{ matrix.arch }}
-            else
-                ./initRepo/scripts/build.sh -r -t --compiler gcc --arch ${{ matrix.arch }}
-            fi
             tar -czf gcc_${{ matrix.arch }}_${{ matrix.build_type }}_build.tar.gz build-gcc-${GCC_VERSION}-${{ matrix.build_type }}-${ARCH}-${{ matrix.arch }}
           else [ "${{ matrix.compiler }}" = "clang" ]
-            ./initRepo/scripts/build.sh --${{ matrix.build_type }} -f --compiler clang --arch ${{ matrix.arch }}
-            ./initRepo/scripts/build.sh --${{ matrix.build_type }} -t --compiler clang --arch ${{ matrix.arch }}
             tar -czf clang_${{ matrix.arch }}_${{ matrix.build_type }}_build.tar.gz build-clang-${CLANG_VERSION}-${{ matrix.build_type }}-${ARCH}-${{ matrix.arch }}
           fi
 
@@ -216,7 +233,7 @@ jobs:
     if: always()
     strategy:
       matrix:
-        build_type: [debug, release]
+        build_type: [o1debug, release]
         arch: [x86, x64]
     steps:
       - uses: actions/download-artifact@v4
@@ -230,6 +247,12 @@ jobs:
           path: .
 
       - run: |
+          # Only enable -g for x64 o1debug builds on gcc for code coverage for unit tests
+          COVERAGE_FLAG=""
+          if [[ "${{ matrix.build_type }}" = "o1debug"  && "${{ matrix.arch }}" = "x64" ]]; then
+            COVERAGE_FLAG="-g"
+          fi
+
           set -e
           tar -xzf workspace.tar.gz -C .
           tar -xzf gcc_${{ matrix.arch }}_${{ matrix.build_type }}_build.tar.gz -C .
@@ -244,11 +267,9 @@ jobs:
             sudo apt-get install -y libstdc++-${GCC_VERSION}-dev:i386 g++-${GCC_VERSION}-multilib gcc-${GCC_VERSION}-multilib 
           fi
           sudo apt-get update
-          if [ "${{ matrix.build_type }}" = "debug" ] && [ "${{ matrix.arch }}" = "x64" ]; then
-            sudo apt-get install -y gcovr lcov
-          fi
           sudo apt-get install -y cmake make
-          ./initRepo/scripts/build.sh -s -T --${{ matrix.build_type }} -J --compiler gcc --arch ${{ matrix.arch }}  # skip cmake and build + run Tests in Junit format output
+          echo "./initRepo/scripts/build.sh -s -T --${{ matrix.build_type }} -J --compiler gcc --arch ${{ matrix.arch }} ${COVERAGE_FLAG}"
+          ./initRepo/scripts/build.sh -s -T --${{ matrix.build_type }} -J --compiler gcc --arch ${{ matrix.arch }} ${COVERAGE_FLAG}  # skip cmake and build + run Tests in Junit format output
 
       - name: Publish GCC test results
         if: always()
@@ -258,15 +279,32 @@ jobs:
             build-gcc-${{ env.GCC_VERSION }}-${{ matrix.build_type }}-${{ env.ARCH }}-${{ matrix.arch }}/test_results.xml
             
       - name: Generate coverage report
-        if: matrix.build_type == 'debug' && matrix.arch == 'x64'
+        if: matrix.build_type == 'o1debug' && matrix.arch == 'x64'
         run: |
-          gcovr --gcov-executable gcov-${{ env.GCC_VERSION }} \
-              -r . build-gcc-${{ env.GCC_VERSION }}-debug-${{ env.ARCH }}-x64/src \
+          python3 -m pip install --upgrade pip
+          python3 -m pip install gcovr
+          python3 -m gcovr --version
+          ls -la 
+          echo "---- <GCDA files> ----"
+          find . -name '*.gcda'
+          echo "---- </GCDA files> ----"
+          python3 -m gcovr --gcov-executable gcov-${{ env.GCC_VERSION }} \
+              -r . build-gcc-${{ env.GCC_VERSION }}-${{ matrix.build_type }}-${{ env.ARCH }}-${{ matrix.arch }} \
               --exclude '.*_deps/.*' --gcov-ignore-parse-errors \
               --xml-pretty -o coverage.xml
+          echo "---- Checking coverage.xml ----"
+          if [ -f coverage.xml ]; then
+              echo "coverage.xml was created!"
+              echo "---- Content start ----"
+              cat coverage.xml
+              echo "---- Content end ----"
+          else
+              echo "coverage.xml was NOT created!"
+              return 1
+          fi
 
       - name: Publish coverage summary
-        if: matrix.build_type == 'debug' && matrix.arch == 'x64'
+        if: matrix.build_type == 'o1debug' && matrix.arch == 'x64'
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: coverage.xml
@@ -275,7 +313,7 @@ jobs:
           output: file
           
       - name: Append coverage to summary # workaround: publish-unit-test-result-action overwrites the summary
-        if: matrix.build_type == 'debug' && matrix.arch == 'x64'
+        if: matrix.build_type == 'o1debug' && matrix.arch == 'x64'
         run: |
           echo "## Code Coverage" >> $GITHUB_STEP_SUMMARY
           cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
@@ -286,7 +324,7 @@ jobs:
     needs: [build]
     strategy:
       matrix:
-        build_type: [debug, release]
+        build_type: [o1debug, release]
         arch: [x86, x64]
     steps:
       - uses: actions/download-artifact@v4
@@ -314,6 +352,7 @@ jobs:
           fi
           sudo apt-get update
           sudo apt-get install -y cmake make
+          echo "./initRepo/scripts/build.sh -s -T --${{ matrix.build_type }} -J --compiler clang --arch ${{ matrix.arch }}"
           ./initRepo/scripts/build.sh -s -T --${{ matrix.build_type }} -J --compiler clang --arch ${{ matrix.arch }}
 
       - name: Publish Clang test results
@@ -336,13 +375,13 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: clang-x64-debug-build
+          name: clang-x64-o1debug-build
           path: .  
           
       - run: |
           set -e
           tar -xzf workspace.tar.gz -C .
-          tar -xzf clang_x64_debug_build.tar.gz -C .
+          tar -xzf clang_x64_o1debug_build.tar.gz -C .
           source initRepo/.environment
           if [ -f .environment ]; then source .environment; fi
           sudo apt-get update

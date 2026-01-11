@@ -1,39 +1,25 @@
 cmake_minimum_required(VERSION 3.16)
 
-# Define project if not already defined (useful for subproject inclusion)
-if (NOT DEFINED PROJECT_NAME)
-    project(precise_timer LANGUAGES CXX)
+project(precise_timer VERSION 1.0.0 LANGUAGES C CXX)
 
-    # This variable must exist!
-    set(ENVIRONMENT_SETTINGS "ProjectSettings")
+# defines umbrella targets to link against. It is protected against multiple includes.
+add_subdirectory(initRepo) # adds CompilerSetup.cmake and Includes.cmake
 
-    add_library("${ENVIRONMENT_SETTINGS}" INTERFACE)
+manage_library(${PROJECT_NAME} ${PROJECT_VERSION})
 
-    # ===== Compiler Settings =====
-    include(initRepo/cmake/CompilerSetup.cmake)
-
-    # ===== Warnings and Tools =====
-    include(initRepo/cmake/CompilerWarnings.cmake)
-    set_project_warnings(${ENVIRONMENT_SETTINGS})
-
-    # ===== External Dependencies =====
-    include(initRepo/cmake/Includes.cmake)
-
-    # ===== Options =====
-    include(initRepo/cmake/Options.cmake)
-    # enable_multithreading(${ENVIRONMENT_SETTINGS})
-    # enable_shared_libraries(${ENVIRONMENT_SETTINGS})
-
-    # ===== Fuzzing =====
-    # include(initRepo/cmake/ClangFuzzyTests.cmake)
-
-    # ===== CTest with Catch2 =====
-    enable_testing()
-    setup_catch2_and_ctest()
-endif()
+if (DEFINED ACCEPTED_TIMER_LIB_VERSION)
+  if(NOT "${ACCEPTED_TIMER_LIB_VERSION}" STREQUAL "${PROJECT_VERSION}")
+    message(FATAL_ERROR "${PROJECT_NAME} already included with a different version. This Version: ${PROJECT_VERSION}, Other Version: ${ACCEPTED_TIMER_LIB_VERSION}")
+  endif()
+else()
 
 
+enable_testing()
+
+setup_catch2_and_ctest()
 
 add_subdirectory(src/timer)
 add_subdirectory(src/executables)
 add_subdirectory(src/tests)
+
+endif()
